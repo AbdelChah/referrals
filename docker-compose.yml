@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest  
+    container_name: mongodb
+    ports:
+      - "27017:27017"  
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro  
+    networks:
+      - referral_network
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]  # Enable replica set
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "443:3000"  # Map host port 443 to container port 3000
+    environment:
+      - PORT=3000
+      - CLIENT_URL=http://localhost:5173
+      
+    volumes:
+      - ./backend:/app  
+      - /app/node_modules  # Prevent host node_modules from overwriting container's node_modules
+    networks:
+      - referral_network
+    depends_on:
+      - mongodb
+
+volumes:
+  mongodb_data:
+
+networks:
+  referral_network:
