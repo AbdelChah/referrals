@@ -16,7 +16,22 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' })); // Allow requests from frontend
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173', // Local dev
+  'http://localhost:3000', // Frontend on a different local dev
+  'https://referrals.bank-juno.com', // Deployed frontend
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+}));
+
 app.use(express.json()); // Parse incoming JSON requests
 
 // Public routes (no authentication required)
