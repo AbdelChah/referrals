@@ -49,58 +49,15 @@ const generateOtp = () => {
     return crypto.randomInt(100000, 999999).toString();
 };
 
-/**
- * Send OTP via Email
- * @param {String} email - Recipient's email address
- * @param {String} otp - OTP to send
- * @returns {Promise}
- */
-
-
-
-const sendOtpEmail = async (email, otp) => {
-    try {
-        const transporter = nodemailer.createTransport({
-            host: "live.smtp.mailtrap.io",
-            port: 587,
-            secure: false, // true for port 465, false for other ports
-            auth: {
-                user: "api",
-                pass: "2851ae4b683878ceb63816a561ee6a00",
-            },
-        });
-
-        // Verify transporter configuration
-        await transporter.verify();
-        console.log('SMTP configuration is correct.');
-
-        // Email options
-        const mailOptions = {
-            from: 'info@demomailtrap.com',
-            to: email,
-            subject: 'Your One-Time Password (OTP)',
-            text: `Your OTP is: ${otp}. It is valid for ${process.env.OTP_EXPIRATION_MINUTES || 10} minutes.`,
-        };
-
-        // Send the email
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.response);
-    } catch (error) {
-        console.error('Error sending OTP email:', error);
-        // Throw a new error with the original error's message for further handling
-        throw new Error(error.response || 'Failed to send OTP email.');
-    }
-};
 
 /**
  * Login Function
- * Authenticates the user's credentials and sends an OTP for further verification.
  */
 exports.login = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // 1. Input Validation
+        // Input Validation
         if ((!username && !email) || !password) {
             return res.status(400).json(
                 formatErrorResponse(
@@ -111,7 +68,6 @@ exports.login = async (req, res) => {
             );
         }
 
-        // 2. Construct Query Based on Provided Credentials
         let query = {};
         if (username) {
             query.username = username.toLowerCase();
@@ -119,7 +75,6 @@ exports.login = async (req, res) => {
             query.email = email.toLowerCase();
         }
 
-        // 3. Find Admin by Username or Email (Case-Insensitive)
         const admin = await Admin.findOne(query);
         if (!admin) {
             return res.status(401).json(
@@ -131,7 +86,6 @@ exports.login = async (req, res) => {
             );
         }
 
-        // 4. Compare Passwords
         const isPasswordValid = await admin.comparePassword(password);
         if (!isPasswordValid) {
             return res.status(401).json(
@@ -143,51 +97,39 @@ exports.login = async (req, res) => {
             );
         }
 
-        // 5. Check for Existing Active Refresh Token
         const existingToken = await Token.findOne({ adminId: admin._id });
         if (existingToken) {
-            return res.status(403).json(
-                formatErrorResponse(
-                    'An active session already exists. Please log out from other devices or refresh your token.',
-                    '19012',
-                    'Active session detected.'
-                )
-            );
+            await existingToken.deleteOne(); // Invalidate the old session
         }
 
-        // 6. Generate OTP
         const otp = generateOtp();
         const otpExpirationMinutes = parseInt(process.env.OTP_EXPIRATION_MINUTES) || 10;
         const expiresAt = new Date(Date.now() + otpExpirationMinutes * 60 * 1000);
 
-        // 7. Store OTP in the Database
         await Otp.create({
             adminId: admin._id,
             otp,
             expiresAt,
         });
 
-        // 8. Respond with OTP (for testing or development purposes)
         return res.status(200).json(
             formatSuccessResponse('OTP has been generated successfully.', {
                 otp,
                 otpExpirationMinutes,
             })
         );
-
     } catch (error) {
         console.error('Login error:', error);
-
-        // General Internal Server Error
         return res.status(500).json(
             formatErrorResponse(
                 'Internal server error.',
                 '19014',
-                isDevelopment ? error.message : 'Login failed due to a server error.'
+                'Login failed due to a server error.'
             )
         );
     }
 };
+
 
 // Generate tokens
 const generateAccessToken = (payload) => {
@@ -205,10 +147,10 @@ const generateRefreshToken = (payload) => {
 // REGISTER
 exports.register = async (req, res) => {
     try {
-        const { username, password, email } = req.body; // Extract email
+        const { username, password, email } = req.body;
 
         // 1. Input Validation
-        if (!username || !password || !email) { // Check for email
+        if (!username || !password || !email) {
             return res.status(400).json(
                 formatErrorResponse(
                     'Username, email, and password are required.',
@@ -230,7 +172,7 @@ exports.register = async (req, res) => {
             );
         }
 
-        // 3. Enforce Password Strength (Optional but Recommended)
+        // 3. Enforce Password Strength
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if (!passwordRegex.test(password)) {
             return res.status(400).json(
@@ -262,9 +204,9 @@ exports.register = async (req, res) => {
 
         // 5. Create and Save New Admin
         const newAdmin = new Admin({
-            username: username.toLowerCase(), // Ensure consistency in storage
-            email: email.toLowerCase(),       // Ensure consistency in storage
-            password,                         // Password will be hashed by pre-save hook
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+            password,
         });
 
         await newAdmin.save();
@@ -280,7 +222,7 @@ exports.register = async (req, res) => {
     } catch (error) {
         console.error('Registration error:', error);
 
-        // Handle Duplicate Key Error (Race Condition)
+        // Handle Duplicate Key Error
         if (error.code === 11000) {
             const duplicateField = Object.keys(error.keyValue)[0];
             return res.status(409).json(
@@ -304,122 +246,180 @@ exports.register = async (req, res) => {
 };
 
 
-exports.verifyOtp = async (req, res, next) => {
-    try {
-      const { username, otp } = req.body;
-  
-      // 1. Input Validation
-      if (!username || !otp) {
-        return res.status(400).json(
-          formatErrorResponse(
-            'Username and OTP are required.',
-            '19016',
-            'Missing required fields.'
-          )
-        );
-      }
-  
-      // 2. Find Admin by Username (Case-Insensitive)
-      const admin = await Admin.findOne({ username: username.toLowerCase() });
-      if (!admin) {
-        return res.status(401).json(
-          formatErrorResponse(
-            'Invalid credentials.',
-            '19017',
-            'Authentication failed.'
-          )
-        );
-      }
-  
-      // 3. Find OTP in the Database
-      const storedOtp = await Otp.findOne({ adminId: admin._id, otp });
-      if (!storedOtp) {
-        return res.status(403).json(
-          formatErrorResponse(
-            'Invalid OTP.',
-            '19018',
-            'OTP verification failed.'
-          )
-        );
-      }
-  
-      // 4. Check if OTP is expired
-      if (storedOtp.expiresAt < new Date()) {
-        // Delete expired OTP
-        await storedOtp.deleteOne();
-        return res.status(403).json(
-          formatErrorResponse(
-            'OTP has expired.',
-            '19019',
-            'OTP verification failed.'
-          )
-        );
-      }
-  
-      // 5. Delete OTP after successful verification to prevent reuse
-      await storedOtp.deleteOne();
-  
-      // 6. Generate Tokens
-      const payload = { id: admin._id };
-      const accessToken = generateAccessToken(payload);
-      const refreshToken = generateRefreshToken(payload);
-  
-      // 7. Save Refresh Token to the Database
-      await Token.create({ token: refreshToken, adminId: admin._id });
-  
-      // 8. Respond with Tokens
-      return res.status(200).json(
-        formatSuccessResponse('Authentication successful.', {
-          accessToken,
-          refreshToken,
-        })
-      );
-    } catch (error) {
-      console.error('OTP Verification error:', error);
-      next(error);
-    }
-  };
 
-// Token refresh
+/**
+ * Verify OTP
+ */
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { username, otp } = req.body;
+
+        if (!username || !otp) {
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Username and OTP are required.',
+                    '19016',
+                    'Missing required fields.'
+                )
+            );
+        }
+
+        const admin = await Admin.findOne({ username: username.toLowerCase() });
+        if (!admin) {
+            return res.status(401).json(
+                formatErrorResponse(
+                    'Invalid credentials.',
+                    '19017',
+                    'Authentication failed.'
+                )
+            );
+        }
+
+        const storedOtp = await Otp.findOne({ adminId: admin._id, otp });
+        if (!storedOtp) {
+            return res.status(403).json(
+                formatErrorResponse(
+                    'Invalid OTP.',
+                    '19018',
+                    'OTP verification failed.'
+                )
+            );
+        }
+
+        if (storedOtp.expiresAt < new Date()) {
+            await storedOtp.deleteOne();
+            return res.status(403).json(
+                formatErrorResponse(
+                    'OTP has expired.',
+                    '19019',
+                    'OTP verification failed.'
+                )
+            );
+        }
+
+        await storedOtp.deleteOne();
+
+        const payload = { id: admin._id };
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        await Token.create({ token: refreshToken, adminId: admin._id });
+
+        return res.status(200).json(
+            formatSuccessResponse('Authentication successful.', {
+                accessToken,
+                refreshToken,
+            })
+        );
+    } catch (error) {
+        console.error('OTP Verification error:', error);
+        return res.status(500).json(
+            formatErrorResponse(
+                'Internal server error.',
+                '19020',
+                'Failed to verify OTP due to server error.'
+            )
+        );
+    }
+};
+
+/**
+ * Refresh Token
+ */
 exports.refreshToken = async (req, res) => {
     try {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(400).json({ error: 'Refresh token is required' });
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Refresh token is required.',
+                    '19020',
+                    'Token is missing.'
+                )
+            );
         }
 
         const storedToken = await Token.findOne({ token: refreshToken });
         if (!storedToken) {
-            return res.status(403).json({ error: 'Invalid refresh token' });
+            return res.status(403).json(
+                formatErrorResponse(
+                    'Invalid refresh token.',
+                    '19021',
+                    'Token does not exist in the database.'
+                )
+            );
         }
 
         jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, admin) => {
-            if (err) return res.status(403).json({ error: 'Invalid refresh token' });
+            if (err) {
+                return res.status(403).json(
+                    formatErrorResponse(
+                        'Invalid or expired refresh token.',
+                        '19022',
+                        'Token verification failed.'
+                    )
+                );
+            }
 
             const accessToken = generateAccessToken({ id: admin.id });
-            res.json({ accessToken });
+            return res.status(200).json(
+                formatSuccessResponse('Token refreshed successfully.', { accessToken })
+            );
         });
     } catch (error) {
         console.error('Refresh token error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json(
+            formatErrorResponse(
+                'Internal server error.',
+                '19023',
+                'Failed to refresh token due to server error.'
+            )
+        );
     }
 };
 
-// Logout
+
+/**
+ * Logout
+ */
 exports.logout = async (req, res) => {
     try {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(400).json({ error: 'Refresh token is required' });
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Refresh token is required to logout.',
+                    '19030',
+                    'Missing refresh token.'
+                )
+            );
         }
 
-        await Token.deleteOne({ token: refreshToken });
-        res.status(200).json({ message: 'Logout successful' });
+        const deletedToken = await Token.deleteOne({ token: refreshToken });
+        if (!deletedToken.deletedCount) {
+            return res.status(404).json(
+                formatErrorResponse(
+                    'Token not found or already invalidated.',
+                    '19031',
+                    'Logout failed.'
+                )
+            );
+        }
+
+        return res.status(200).json(
+            formatSuccessResponse('Logout successful.')
+        );
     } catch (error) {
         console.error('Logout error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json(
+            formatErrorResponse(
+                'Internal server error during logout.',
+                '19032',
+                'Logout failed due to server error.'
+            )
+        );
     }
 };
 
@@ -445,4 +445,4 @@ exports.authenticateToken = (req, res, next) => {
       req.user = admin;
       next();
   });
-};
+}
