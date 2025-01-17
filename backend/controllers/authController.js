@@ -64,6 +64,7 @@ exports.login = async (req, res) => {
                     'Username or email and password are required.',
                     '19010',
                     'Missing required fields.'
+
                 )
             );
         }
@@ -429,7 +430,11 @@ exports.authenticateToken = (req, res, next) => {
 
   if (!token) {
       console.error('Authentication Error: Token is missing.');
-      return res.status(401).json({ error: 'Token is missing' });
+      return res.status(401).json(            formatErrorResponse(
+                'Token is missing.',
+                '19032',
+                'Logout failed due to server error.'
+            ));
   }
 
   jwt.verify(token, process.env.ACCESS_SECRET, (err, admin) => {
@@ -438,7 +443,11 @@ exports.authenticateToken = (req, res, next) => {
               error: err.message,
               token,
           });
-          return res.status(403).json({ error: 'Invalid or expired token' });
+          return res.status(403).json(            formatErrorResponse(
+            'Invalid or expired token.',
+            '19032',
+            'Logout failed due to server error.'
+        ));
       }
 
       console.info('Authentication Success:', { adminId: admin.id });
