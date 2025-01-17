@@ -167,33 +167,16 @@ exports.login = async (req, res) => {
             expiresAt,
         });
 
-        // 8. **Simulate Email Sending Error** and **Respond with Error**
-        // For testing purposes, we'll simulate an email sending failure.
-        // This means we won't actually attempt to send the email.
-
-        // Instead, we'll manually throw an error with the specified message.
-        const simulatedErrorMessage = `554 5.7.1 Demo domains can only be used to send emails to account owners. You can only send testing emails to your own email address. OTP: ${otp}`;
-        return res.status(500).json(
-            formatErrorResponse(
-                simulatedErrorMessage,
-                '19013',
-                'Unable to send OTP email.'
-            )
+        // 8. Respond with OTP (for testing or development purposes)
+        return res.status(200).json(
+            formatSuccessResponse('OTP has been generated successfully.', {
+                otp,
+                otpExpirationMinutes,
+            })
         );
-
-        // **Note:** In a real scenario, you would call:
-        // await sendOtpEmail(admin.email, otp);
-
-        // 9. Respond to Client (This won't be reached due to the thrown error)
-        // return res.status(200).json(
-        //     formatSuccessResponse('OTP has been sent to your registered email address.', {
-        //         otpExpirationMinutes,
-        //     })
-        // );
 
     } catch (error) {
         console.error('Login error:', error);
-
 
         // General Internal Server Error
         return res.status(500).json(
