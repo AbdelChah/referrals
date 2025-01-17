@@ -22,6 +22,10 @@ const campaignSchema = new Schema({
     type: Date,
     required: true,
   },
+  min_referees: {
+    type: Number,
+    required: true,
+  },
   reward_criteria: {
     onBoarding: { reward: Number },
     transaction: {

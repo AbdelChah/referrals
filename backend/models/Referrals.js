@@ -1,6 +1,8 @@
+const { boolean } = require('joi');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 const { Schema } = mongoose;
+
 const referralSchema = new Schema({
   referral_id: {
     type: String,
@@ -24,12 +26,12 @@ const referralSchema = new Schema({
   referees: [
     {
       referee_phone: { type: String, required: true },
+      status: { type: Boolean, default: false }, // Referee's overall qualification status
       actions: [
         {
           type: { type: String, enum: ['onBoarding', 'transaction'], required: true },
           details: { type: Object }, // For transaction-specific details
           date: { type: Date, default: Date.now },
-          status: { type: String, enum: ['pending', 'rewarded', 'rejected'], default: 'pending' }, // Status of the action
         },
       ],
       rewards: {

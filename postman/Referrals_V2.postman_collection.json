@@ -77,7 +77,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\" : \"admin1\",\n    \"otp\" : \"873754\"\n\n}"
+							"raw": "{\n    \"username\" : \"admin1\",\n    \"otp\" : \"274423\"\n\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/verifyOTP",
@@ -438,7 +438,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost"
+			"value": "http://134.122.104.124:8443"
 		},
 		{
 			"key": "accessToken",

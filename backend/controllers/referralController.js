@@ -227,34 +227,6 @@ exports.refereeAction = async (req, res) => {
             });
         }
 
-        // Fetch multivalues for validation
-        const multivalues = await fetchMultivalues();
-        const validApplications = multivalues.response.application.values.map(item => item.id);
-        const validActions = multivalues.response.action.values.map(item => item.id);
-
-        // Validate application and action
-        if (!validApplications.includes(application)) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Invalid application.',
-                    errCode: '19186',
-                    msgAPI: `Supported applications: ${validApplications.join(', ')}.`,
-                },
-            });
-        }
-
-        if (!validActions.includes(action)) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Invalid action.',
-                    errCode: '19187',
-                    msgAPI: `Supported actions: ${validActions.join(', ')}.`,
-                },
-            });
-        }
-
         // Fetch referral document with session
         const referral = await Referral.findOne(
             { referral_code: referralId },
@@ -288,87 +260,46 @@ exports.refereeAction = async (req, res) => {
             });
         }
 
-        // Find referee index
+        // Find or initialize referee
         let refereeIndex = referral.referees.findIndex(r => r.referee_phone === referee);
-        
-        // Initialize new referee if not found
         if (refereeIndex === -1) {
             refereeIndex = referral.referees.length;
             referral.referees.push({
                 referee_phone: referee,
+                status: false, // Default status
                 actions: [],
-                rewards: { onBoarding: false, transaction: false }
+                rewards: { onBoarding: false, transaction: false },
             });
         }
 
-        // Helper function to trigger reward API
-        const triggerReward = async (rewardAmount, rewardCurrency) => {
-            const payload = {
-                application,
-                referrer: referral.referrer_phone,
-                amount: rewardAmount,
-                currency: rewardCurrency,
-                referralId,
-            };
-
-            console.log('Triggering reward:', payload);
-            
-            const response = await axios.post(
-                `${process.env.JUNO_URL}/juno/callbacks/referrals/reward`,
-                payload
-            );
-            
-            console.log('Reward API Response:', response.data);
-            return response;
-        };
+        const refereeData = referral.referees[refereeIndex];
 
         // Handle onboarding action
         if (action === 'onBoarding') {
-            if (referral.referees[refereeIndex].rewards.onBoarding) {
+            if (refereeData.rewards.onBoarding) {
                 await session.abortTransaction();
                 return res.status(409).json({
                     res: false,
                     responseError: {
-                        msg: 'The onboarding reward has already been claimed for this referee.',
+                        msg: 'Onboarding reward already claimed for this referee.',
                         errCode: '19192',
                         msgAPI: 'Duplicate onboarding reward claim.',
                     },
                 });
             }
 
-            try {
-                const rewardCurrency = campaign.reward_criteria.currency || 'USD';
-                await triggerReward(campaign.reward_criteria.onBoarding.reward, rewardCurrency);
+            refereeData.actions.push({ type: action, date: new Date() });
+            refereeData.rewards.onBoarding = true;
 
-                referral.referees[refereeIndex].rewards.onBoarding = true;
-                referral.referees[refereeIndex].actions.push({
-                    type: action,
-                    date: new Date(),
-                    status: 'rewarded'
-                });
+            await referral.save({ session });
+            await session.commitTransaction();
 
-                await referral.save({ session });
-                await session.commitTransaction();
-
-                return res.status(200).json({
-                    res: true,
-                    response: {
-                        msg: 'Onboarding reward dispatched successfully.',
-                    },
-                });
-            } catch (error) {
-                await session.abortTransaction();
-                console.error('Onboarding reward error:', error);
-                
-                return res.status(500).json({
-                    res: false,
-                    responseError: {
-                        msg: 'Failed to dispatch onboarding reward.',
-                        errCode: '19193',
-                        msgAPI: 'Onboarding reward dispatch failed.',
-                    },
-                });
-            }
+            return res.status(200).json({
+                res: true,
+                response: {
+                    msg: 'Onboarding action logged successfully.',
+                },
+            });
         }
 
         // Handle transaction action
@@ -376,116 +307,66 @@ exports.refereeAction = async (req, res) => {
             const criteria = campaign.reward_criteria.transaction;
 
             // Validate transaction fields
-            const validTransactions = multivalues.response.transaction.values.map(item => item.id);
-            const validDebitOrCredit = multivalues.response.debitOrCredit.values.map(item => item.id);
-            const validCurrencies = multivalues.response.currency.values.map(item => item.id);
-
-            if (!validTransactions.includes(transaction)) {
-                await session.abortTransaction();
-                return res.status(400).json({
-                    res: false,
-                    responseError: {
-                        msg: 'Invalid transaction type.',
-                        errCode: '19188',
-                        msgAPI: `Supported transaction types: ${validTransactions.join(', ')}.`,
-                    },
+            if (
+                amount < criteria.minAmount ||
+                criteria.currency !== currency ||
+                criteria.transaction_type !== transaction ||
+                criteria.debitOrCredit !== debitOrCredit
+            ) {
+                refereeData.actions.push({
+                    type: action,
+                    details: { transaction, amount, currency },
+                    date: new Date(),
                 });
-            }
-
-            if (!validDebitOrCredit.includes(debitOrCredit)) {
-                await session.abortTransaction();
-                return res.status(400).json({
-                    res: false,
-                    responseError: {
-                        msg: 'Invalid debitOrCredit type.',
-                        errCode: '19189',
-                        msgAPI: `Supported debitOrCredit values: ${validDebitOrCredit.join(', ')}.`,
-                    },
-                });
-            }
-
-            if (!validCurrencies.includes(currency)) {
-                await session.abortTransaction();
-                return res.status(400).json({
-                    res: false,
-                    responseError: {
-                        msg: 'Invalid currency.',
-                        errCode: '19190',
-                        msgAPI: `Supported currencies: ${validCurrencies.join(', ')}.`,
-                    },
-                });
-            }
-
-            const newAction = {
-                type: action,
-                details: { transaction, debitOrCredit, amount, currency },
-                date: new Date(),
-                status: 'pending'
-            };
-
-            // Check if already rewarded
-            if (referral.referees[refereeIndex].rewards.transaction) {
-                newAction.status = 'rewarded';
-                referral.referees[refereeIndex].actions.push(newAction);
+                
+                refereeData.status = false;
                 await referral.save({ session });
                 await session.commitTransaction();
 
                 return res.status(200).json({
                     res: true,
                     response: {
-                        msg: 'Action recorded. The transaction reward has already been claimed.',
+                        msg: 'Transaction action logged. No reward dispatched.',
                     },
                 });
             }
 
-            // Check reward eligibility
-            const isEligibleForReward =
-                amount >= criteria.minAmount &&
-                criteria.currency === currency &&
-                criteria.transaction_type === transaction &&
-                criteria.debitOrCredit === debitOrCredit;
+            // Log the transaction action and mark status as true
+            refereeData.actions.push({
+                type: action,
+                details: { transaction, amount, currency },
+                date: new Date(),
+            });
 
-            if (isEligibleForReward) {
-                try {
-                    await triggerReward(criteria.reward, currency);
-                    
-                    newAction.status = 'rewarded';
-                    referral.referees[refereeIndex].rewards.transaction = true;
-                    referral.referees[refereeIndex].actions.push(newAction);
-                    
-                    await referral.save({ session });
-                    await session.commitTransaction();
+            refereeData.status = true;
+            refereeData.rewards.transaction = true;
 
-                    return res.status(201).json({
-                        res: true,
-                        response: {
-                            msg: 'Transaction reward dispatched successfully.',
-                        },
-                    });
-                } catch (error) {
-                    await session.abortTransaction();
-                    console.error('Transaction reward error:', error);
-                    
-                    return res.status(500).json({
-                        res: false,
-                        responseError: {
-                            msg: 'Failed to dispatch transaction reward.',
-                            errCode: '19194',
-                            msgAPI: 'Transaction reward dispatch failed.',
-                        },
-                    });
-                }
+            // Count referees with valid transactions (status: true)
+            const validRefereesCount = referral.referees.filter(r => r.status).length;
+
+            // Update total rewards
+            referral.total_rewards = validRefereesCount;
+
+            // Dispatch reward to referrer if min_referees condition is met
+            if (validRefereesCount >= campaign.min_referees) {
+                await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
+                    application,
+                    referrer: referral.referrer_phone,
+                    amount: criteria.reward,
+                    currency,
+                    referralId,
+                });
+
+                console.log('Reward dispatched to referrer.');
             }
 
-            // Record non-eligible transaction
-            referral.referees[refereeIndex].actions.push(newAction);
             await referral.save({ session });
             await session.commitTransaction();
 
-            return res.status(200).json({
+            return res.status(201).json({
                 res: true,
                 response: {
-                    msg: 'Action recorded. The transaction does not meet the reward criteria.',
+                    msg: 'Transaction processed and reward dispatched if eligible.',
                 },
             });
         }
@@ -503,7 +384,6 @@ exports.refereeAction = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error('Error processing referee action:', error);
-        
         return res.status(500).json({
             res: false,
             responseError: {
@@ -516,6 +396,8 @@ exports.refereeAction = async (req, res) => {
         session.endSession();
     }
 };
+
+
 
 exports.getRefereesStatus = async (req, res) => {
     try {
@@ -569,11 +451,11 @@ exports.getRefereesStatus = async (req, res) => {
 
             let status = null;
             if (onboardingReward && transactionReward) {
-                status = 'OnBoarding_Transaction_true';
+                status = true;
             } else if (onboardingReward) {
-                status = 'OnBoarding_true';
+                status = false;
             } else if (transactionReward) {
-                status = 'Transaction_true';
+                status = true;
             }
 
             return { [referee.referee_phone]: status };

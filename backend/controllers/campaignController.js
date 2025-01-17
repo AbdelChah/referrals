@@ -27,14 +27,16 @@ const fetchMultivalues = async () => {
 
 exports.createCampaign = async (req, res) => {
   try {
-      const { name, start_date, end_date, reward_criteria, status } = req.body;
+      const { name, start_date, end_date, reward_criteria, status, min_referees } = req.body;
+
+      console.log("Request body:", req.body);
 
       // Validate required fields
-      if (!name || !start_date || !end_date || !reward_criteria) {
+      if (!name || !start_date || !end_date || !reward_criteria || typeof min_referees !== 'number') {
           return res.status(400).json({
               res: false,
               responseError: {
-                  msg: 'Name, start_date, end_date, and reward_criteria are required.',
+                  msg: 'Name, start_date, end_date, reward_criteria, and min_referees are required.',
                   errCode: '19181',
                   msgAPI: 'Missing required fields.',
               },
@@ -53,134 +55,15 @@ exports.createCampaign = async (req, res) => {
           });
       }
 
-      // Fetch multivalues for validation
-      const multivalues = await fetchMultivalues();
-      const validCurrencies = multivalues.response.currency.values.map(item => item.id);
-      const validTransactionTypes = multivalues.response.transaction.values.map(item => item.id);
-      const validDebitOrCredit = multivalues.response.debitOrCredit.values.map(item => item.id);
-
-      // Validate reward_criteria
-      const { onBoarding, transaction } = reward_criteria;
-
-      // Validate onBoarding reward
-      if (!onBoarding || typeof onBoarding.reward !== 'number' || onBoarding.reward < 0) {
+      // Ensure only one active campaign exists
+      const activeCampaign = await Campaign.findOne({ status: 'active' });
+      if (activeCampaign) {
           return res.status(400).json({
               res: false,
               responseError: {
-                  msg: 'Invalid onboarding reward criteria.',
-                  errCode: '19183',
-                  msgAPI: 'Onboarding reward must be a non-negative number.',
-              },
-          });
-      }
-
-     // Validate transaction reward
-if (!transaction) {
-  console.debug('Validation Failed: Transaction object is missing.');
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: 'Transaction object is required.',
-      },
-  });
-}
-
-if (typeof transaction.minAmount !== 'number') {
-  console.debug('Validation Failed: transaction.minAmount is not a number.');
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: 'Transaction minAmount must be a number.',
-      },
-  });
-}
-
-if (transaction.minAmount < 0) {
-  console.debug('Validation Failed: transaction.minAmount is negative.');
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: 'Transaction minAmount cannot be negative.',
-      },
-  });
-}
-
-if (typeof transaction.reward !== 'number') {
-  console.debug('Validation Failed: transaction.reward is not a number.');
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: 'Transaction reward must be a number.',
-      },
-  });
-}
-
-if (transaction.reward < 0) {
-  console.debug('Validation Failed: transaction.reward is negative.');
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: 'Transaction reward cannot be negative.',
-      },
-  });
-}
-
-if (!validCurrencies.includes(transaction.currency)) {
-  console.debug(`Validation Failed: transaction.currency '${transaction.currency}' is not supported.`);
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: `Unsupported currency '${transaction.currency}'. Supported currencies: ${validCurrencies.join(', ')}.`,
-      },
-  });
-}
-
-if (!validTransactionTypes.includes(transaction.transaction_type)) {
-  console.debug(`Validation Failed: transaction.transaction_type '${transaction.transaction_type}' is not supported.`);
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: `Unsupported transaction type '${transaction.transaction_type}'. Supported transaction types: ${validTransactionTypes.join(', ')}.`,
-      },
-  });
-}
-
-if (!validDebitOrCredit.includes(transaction.debitOrCredit)) {
-  console.debug(`Validation Failed: transaction.debitOrCredit '${transaction.debitOrCredit}' is not supported.`);
-  return res.status(400).json({
-      res: false,
-      responseError: {
-          msg: 'Invalid transaction reward criteria.',
-          errCode: '19184',
-          msgAPI: `Unsupported debitOrCredit value '${transaction.debitOrCredit}'. Supported values: ${validDebitOrCredit.join(', ')}.`,
-      },
-  });
-}
-
-
-      // Check for existing campaign with the same name
-      const existingCampaign = await Campaign.findOne({ name: name.trim() });
-      if (existingCampaign) {
-          return res.status(400).json({
-              res: false,
-              responseError: {
-                  msg: 'A campaign with this name already exists.',
-                  errCode: '19185',
-                  msgAPI: 'Duplicate campaign name.',
+                  msg: 'An active campaign already exists. Only one campaign is allowed at a time.',
+                  errCode: '19186',
+                  msgAPI: 'Duplicate active campaign.',
               },
           });
       }
@@ -193,13 +76,16 @@ if (!validDebitOrCredit.includes(transaction.debitOrCredit)) {
           end_date: new Date(end_date),
           reward_criteria,
           status: status || 'active',
+          min_referees, // Ensure this is correctly passed
       });
 
-      await campaign.save();
+      const savedCampaign = await campaign.save();
+      console.log("Saved Campaign:", savedCampaign);
+
       return res.status(201).json({
           res: true,
           response: {
-              campaignId: campaign.campaign_id,
+              campaignId: savedCampaign.campaign_id,
               message: 'Campaign created successfully.',
           },
       });
@@ -217,16 +103,37 @@ if (!validDebitOrCredit.includes(transaction.debitOrCredit)) {
   }
 };
 
+
+
 // Get all campaigns
 exports.getAllCampaigns = async (req, res) => {
   try {
-    const campaigns = await Campaign.find({});
-    res.json(campaigns);
+    const campaigns = await Campaign.find({}, {
+      name: 1,
+      start_date: 1,
+      end_date: 1,
+      reward_criteria: 1,
+      status: 1,
+      min_referees: 1,
+      campaign_id: 1
+    });
+    res.status(200).json({
+      res: true,
+      response: campaigns
+    });
   } catch (error) {
     console.error('Error fetching campaigns:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      res: false,
+      responseError: {
+        msg: 'Internal server error.',
+        errCode: '19187',
+        msgAPI: 'Failed to fetch campaigns.'
+      }
+    });
   }
 };
+
 
 // Get a campaign by ID
 exports.getCampaignById = async (req, res) => {
