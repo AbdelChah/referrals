@@ -37,9 +37,10 @@ app.use(express.json()); // Parse incoming JSON requests
 // Public routes (no authentication required)
 app.use('/api/auth', authRoutes);
 
-// Protected routes (authentication middleware applied at route level in `authRoutes.js`)
+
 app.use('/apiCallbacks/juno', referralRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/referrals', referralRoutes);
 app.use('/api/performance', performanceRoutes);
 
 // Start the server

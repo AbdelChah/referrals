@@ -281,7 +281,7 @@ exports.refereeAction = async (req, res) => {
                 return res.status(409).json({
                     res: false,
                     responseError: {
-                        msg: 'Onboarding reward already claimed for this referee.',
+                        msg: 'Onboarding already registered.',
                         errCode: '19192',
                         msgAPI: 'Duplicate onboarding reward claim.',
                     },
@@ -348,7 +348,7 @@ exports.refereeAction = async (req, res) => {
             referral.total_rewards = validRefereesCount;
 
             // Dispatch reward to referrer if min_referees condition is met
-            if (validRefereesCount >= campaign.min_referees) {
+            if (validRefereesCount === campaign.min_referees) {
                 await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
                     application,
                     referrer: referral.referrer_phone,
@@ -481,4 +481,43 @@ exports.getRefereesStatus = async (req, res) => {
     }
 };
 
+exports.getReferrals = async (req, res) => {
+    try {
+        // Fetch all referral documents
+        const referrals = await Referral.find({}).populate('campaign_id');
+
+        // Process each referral document
+        const result = referrals.map(referral => {
+            return {
+                referrer_phone: referral.referrer_phone,
+                campaigns: [
+                    {
+                        campaignId: referral.campaign_id._id,
+                        campaignName: referral.campaign_id.name,
+                        description: referral.campaign_id.description,
+                        referees: referral.referees.map(referee => ({
+                            referralId: referral.referral_id,
+                            referee_phone: referee.referee_phone,
+                            date: referee.actions.length > 0 ? referee.actions[0].date : null, // Get the date of the first action
+                            status: referral.total_rewards >= referral.campaign_id.min_referees,
+                        })),
+                    },
+                ],
+            };
+        });
+
+        // Return the response
+        res.status(200).json({ referrals: result });
+    } catch (error) {
+        console.error('Error fetching referrals:', error);
+        res.status(500).json({
+            res: false,
+            responseError: {
+                msg: 'Failed to fetch referrals.',
+                errCode: '19200',
+                msgAPI: 'System error while fetching referrals.',
+            },
+        });
+    }
+};
 

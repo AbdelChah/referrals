@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const Admin = require('../models/Admin');
 const Token = require('../models/Token'); // Model to store refresh tokens securely
 const Otp = require('../models/OTP');     // Model to store OTPs
-
+const bcrypt = require('bcryptjs');
 /**
  * Helper Functions for Standardized Responses
  */
@@ -425,7 +425,7 @@ exports.logout = async (req, res) => {
 };
 
 // Middleware to authenticate access tokens
-exports.authenticateToken = (req, res, next) => {
+exports.authenticateToken = (req, res, next) => {   
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -455,3 +455,89 @@ exports.authenticateToken = (req, res, next) => {
       next();
   });
 }
+
+
+// Reset Password Endpoint
+exports.resetPassword = async (req, res) => {
+    try {
+        const { username, email, newPassword } = req.body;
+
+        // 1. Input Validation
+        if (!username || !email || !newPassword) {
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Username, email, and new password are required.',
+                    '19040',
+                    'Missing required fields.'
+                )
+            );
+        }
+
+        // 2. Validate Email Format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Invalid email format.',
+                    '19042',
+                    'Email validation failed.'
+                )
+            );
+        }
+
+        // 3. Enforce Password Strength
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json(
+                formatErrorResponse(
+                    'Password must be at least 8 characters long and include both letters and numbers.',
+                    '19041',
+                    'Weak password.'
+                )
+            );
+        }
+
+        // 4. Find Admin by Username and Email (Case-Insensitive)
+        const admin = await Admin.findOne({
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+        });
+
+        if (!admin) {
+            return res.status(404).json(
+                formatErrorResponse(
+                    'Admin not found. Please check the provided username and email.',
+                    '19043',
+                    'Admin not found.'
+                )
+            );
+        }
+
+        // 5. Hash the New Password and Update
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        admin.password = hashedPassword;
+        await admin.save();
+
+        // 6. Successful Password Reset Response
+        return res.status(200).json(
+            formatSuccessResponse('Password reset successfully.', {
+                username: admin.username,
+                email: admin.email,
+                updated_at: admin.updatedAt,
+            })
+        );
+    } catch (error) {
+        console.error('Password Reset Error:', error);
+
+        // General Internal Server Error
+        return res.status(500).json(
+            formatErrorResponse(
+                'Internal server error during password reset.',
+                '19044',
+                'Password reset failed due to a server error.'
+            )
+        );
+    }
+};
