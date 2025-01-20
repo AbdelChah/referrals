@@ -110,7 +110,7 @@ exports.generateReferralCode = async (req, res) => {
 
       await newReferral.save();
 
-      return res.status(201).json({
+      return res.status(200).json({
           res: true,
           response: {
               referralId: referralCode,
