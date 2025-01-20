@@ -364,7 +364,7 @@ exports.refereeAction = async (req, res) => {
             await referral.save({ session });
             await session.commitTransaction();
 
-            return res.status(201).json({
+            return res.status(200).json({
                 res: true,
                 response: {
                     msg: 'Transaction processed and reward dispatched if eligible.',
