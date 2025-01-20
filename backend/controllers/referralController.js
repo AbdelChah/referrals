@@ -37,10 +37,10 @@ const generateReferralCode = (referrer, campaignName) => {
 // Generate referral code
 exports.generateReferralCode = async (req, res) => {
   try {
-      const { application, referrer, campaignName } = req.body;
+      const { application, referrer } = req.body;
 
       // Validate input
-      if (!application || !referrer || !campaignName) {
+      if (!application || !referrer ) {
           return res.status(400).json({
               res: false,
               responseError: {
@@ -68,7 +68,7 @@ exports.generateReferralCode = async (req, res) => {
       }
 
       // Check for active campaign
-      const activeCampaign = await Campaign.findOne({ name: campaignName, status: 'active' });
+      const activeCampaign = await Campaign.findOne();
       if (!activeCampaign) {
           return res.status(404).json({
               res: false,
@@ -97,7 +97,7 @@ exports.generateReferralCode = async (req, res) => {
       }
 
       // Generate a unique referral code
-      const referralCode = generateReferralCode(referrer, campaignName);
+      const referralCode = generateReferralCode(referrer, activeCampaign.name);
 
       // Save the referral with an empty referees array
       const newReferral = new Referral({
