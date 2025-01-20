@@ -214,7 +214,7 @@ exports.refereeAction = async (req, res) => {
 
     try {
         const { application, referee, referralId, action, transaction, debitOrCredit, amount, currency } = req.body;
-        console.log('Received refereeAction request:', { application, referee, referralId, action });
+        console.log('Received refereeAction request:', req.body);
 
         // Validate input
         if (!application || !referee || !referralId || !action) {
