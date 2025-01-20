@@ -37,11 +37,11 @@ services:
     container_name: nginx
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - ./certbot/www:/var/www/certbot  # For serving the ACME challenge
-      - ./certbot/conf:/etc/letsencrypt  # For SSL certificates
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
     ports:
-      - "80:80"  # HTTP
-      - "443:443"  # HTTPS
+      - "80:80"
+      - "443:443"
     networks:
       - referral_network
     depends_on:
@@ -51,9 +51,26 @@ services:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - ./certbot/www:/var/www/certbot  # ACME challenge
-      - ./certbot/conf:/etc/letsencrypt  # SSL certificates
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 2073600; done'"
+
+
+  certbot-setup:
+    image: certbot/certbot
+    container_name: certbot-setup
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        certbot certonly \
+        --webroot \
+        -w /var/www/certbot \
+        -d referrals.bank-juno.com \
+        --email achahbaz@bobfin.com --agree-tos --non-interactive --rsa-key-size 2048;
 
   
   
@@ -62,3 +79,4 @@ networks:
 
 volumes:
   mongodb_data:
+  certbot-data:
