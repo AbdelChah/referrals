@@ -7,12 +7,29 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - "3000:3000"  # Map container port to host port
+      - "3000:3000"  
     volumes:
       - ./backend:/app
       - /app/node_modules
     networks:
       - referral_network
+    depends_on:
+      - mongodb  
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"  #
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro  # Initialization script
+    networks:
+      - referral_network
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]  # Enable replica set
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
 
   nginx:
     image: nginx:latest
@@ -39,3 +56,6 @@ services:
 
 networks:
   referral_network:
+
+volumes:
+  mongodb_data:
