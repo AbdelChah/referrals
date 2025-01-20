@@ -1,82 +1,39 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:latest  
+    container_name: mongodb
+    ports:
+      - "27017:27017"  
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro  
+    networks:
+      - referral_network
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]  # Enable replica set
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - "3000:3000"  
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    networks:
-      - referral_network
-    depends_on:
-      - mongodb  
-
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db              # MongoDB data persistence
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro  # Initialization script
-      - ./mongo-keyfile:/etc/mongo-keyfile:ro  # KeyFile for secure replica set communication
-    networks:
-      - referral_network
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--auth", "--keyFile", "/etc/mongo-keyfile"]
+      - "443:3000"  # Map host port 443 to container port 3000
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin    # Root user credentials
-      MONGO_INITDB_ROOT_PASSWORD: password
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
+      - PORT=3000
+      - CLIENT_URL=http://localhost:5173
+      
     volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    ports:
-      - "80:80"
-      - "443:443"
+      - ./backend:/app  
+      - /app/node_modules  # Prevent host node_modules from overwriting container's node_modules
     networks:
       - referral_network
     depends_on:
-      - backend
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 2073600; done'"
-
-
-  certbot-setup:
-    image: certbot/certbot
-    container_name: certbot-setup
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        certbot certonly \
-        --webroot \
-        -w /var/www/certbot \
-        -d referrals.bank-juno.com \
-        --email achahbaz@bobfin.com --agree-tos --non-interactive --rsa-key-size 2048;
-
-  
-  
-networks:
-  referral_network:
+      - mongodb
 
 volumes:
   mongodb_data:
-  certbot-data:
+
+networks:
+  referral_network:
