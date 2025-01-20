@@ -191,6 +191,7 @@ exports.validateReferralCode = async (req, res) => {
             res: true,
             response: {
                 msg: 'Referral code is active',
+                isReferralIdValid : true
             },
         });
     } catch (error) {
