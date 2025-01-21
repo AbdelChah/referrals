@@ -1,20 +1,14 @@
-# Use the official Node.js image as the base
-FROM node:18
+# Use the official Nginx image
+FROM nginx:alpine
 
 # Set the working directory inside the container
-WORKDIR /usr/src/app
+WORKDIR /usr/share/nginx/html
 
-# Copy package.json and package-lock.json to install dependencies
-COPY package.json package-lock.json ./
+# Copy the prebuilt `build` folder to the Nginx default directory
+COPY build/ .
 
-# Install dependencies with legacy peer deps to resolve any conflicts
-RUN npm install --legacy-peer-deps
-
-# Copy the source code into the container
-COPY . .
-
-# Expose the port the React dev server will run on
+# Expose the port Nginx will serve on
 EXPOSE 3000
 
-# Command to start the React app in development mode
-CMD ["npm", "start"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
