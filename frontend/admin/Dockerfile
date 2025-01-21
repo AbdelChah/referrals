@@ -1,33 +1,20 @@
-# Stage 1: Build Stage
-FROM node:18 AS build
+# Use the official Node.js image as the base
+FROM node:18
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json to install dependencies
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install dependencies with legacy peer deps to resolve any conflicts
 RUN npm install --legacy-peer-deps
 
-# Copy the source code
+# Copy the source code into the container
 COPY . .
 
-# Increase the memory allocation for Node.js during build
-RUN node --max-old-space-size=4096 node_modules/.bin/react-scripts build
-
-# Stage 2: Serve Stage (Optional)
-# Using a lighter image to serve the build output
-FROM node:18-slim
-
-# Set the working directory inside the container
-WORKDIR /usr/src/app
-
-# Copy the build artifacts from the build stage
-COPY --from=build /usr/src/app/build /usr/src/app/build
-
-# Expose the port the app runs on
+# Expose the port the React dev server will run on
 EXPOSE 3000
 
-# Command to run the application (with a memory limit increase if needed)
+# Command to start the React app in development mode
 CMD ["npm", "start"]
