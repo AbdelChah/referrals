@@ -5,14 +5,14 @@ import {
   TableHeaderCell as TableHeader,
   StyledTableCell as TableCell,
   StyledButton,
-} from "@styles/table.styles";
+} from "../../styles/table.styles";
 import { Link } from "react-router-dom";
-import { Title } from "@styles/title.styles";
-import { Campaign } from "@models/Campaign";
-import { fetchCampaigns } from "@services/campaignService";
+import { Title } from "../../styles/title.styles";
+import { Campaign } from "../../Models/Campaign";
+import { fetchCampaigns } from "../../services/campaignService";
 import CampaignModal from "./CampaignDetailsModal";
 import { TablePagination } from "@mui/material";
-import { formatDate } from "@utils/dateUtils";
+import { formatDate } from "../../utils/dateUtils";
 
 const CampaignList: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

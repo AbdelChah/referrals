@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardTitle } from './dashboard.styles';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import {getPerformanceMetrics} from '@services/dashboardService';
+import {getPerformanceMetrics} from '../../services/dashboardService';
 
 interface PerformanceData {
   totalReferrals: number;

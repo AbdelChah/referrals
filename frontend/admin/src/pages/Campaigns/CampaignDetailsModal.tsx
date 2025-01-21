@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography, Modal } from "@mui/material";
-import { StyledButton } from "@styles/button.styles";
-import { Campaign } from "@models/Campaign";
+import { StyledButton } from "../../styles/button.styles";
+import { Campaign } from "../../Models/Campaign";
 import {
   ModalContainer,
   DetailsList,

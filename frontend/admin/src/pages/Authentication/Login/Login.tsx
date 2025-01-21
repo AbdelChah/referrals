@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import * as Yup from "yup";
-import FormWrapper from "@components/FormWrapper";
+import FormWrapper from "../../../components/FormWrapper";
 import { FormikValues } from "formik";
-import { useAuthContext } from "@hooks/useAuthContext";
+import { useAuthContext } from "../../../hooks/useAuthContext";
 
 import { Link } from "react-router-dom";
 

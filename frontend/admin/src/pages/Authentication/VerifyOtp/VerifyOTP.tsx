@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import * as Yup from "yup";
 import { OTPContainer, OTPInput } from "./verifyOTP.styles";
-import FormWrapper from "@components/FormWrapper";
-import { StyledButton } from "@components/formWrapper.styles";
+import FormWrapper from "../../../components/FormWrapper";
+import { StyledButton } from "../../../components/formWrapper.styles";
 import { toast } from "react-toastify";
-import { useAuthContext } from "@hooks/useAuthContext";
+import { useAuthContext } from "../../../hooks/useAuthContext";
 
 const validationSchema = Yup.object().shape({
   otp: Yup.string()

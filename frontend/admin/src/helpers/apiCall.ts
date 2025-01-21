@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import api from '@services/axiosInstance'; // import the configured axios instance
+import api from '../services/axiosInstance'; // import the configured axios instance
 
 export const apiCall = async <T>(
   url: string,

@@ -11,7 +11,7 @@ import {
   Paper,
   Button,
 } from "@mui/material";
-import { Title } from "@styles/title.styles";
+import { Title } from "../../styles/title.styles";
 import AddAdminModal from "./AddAdminModal"; // Import the modal component
 import { FormikValues } from "formik";
 import { toast } from "react-toastify";

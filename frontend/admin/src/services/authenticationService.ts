@@ -1,5 +1,5 @@
-import { apiCall } from "@helpers/apiCall";
-import { saveTokens } from "@helpers/tokenHelper";
+import { apiCall } from "../helpers/apiCall";
+import { saveTokens } from "../helpers/tokenHelper";
 import {
   LoginRequest,
   RegisterRequest,
@@ -7,7 +7,7 @@ import {
   AuthResponse,
   OtpRequest,
   OtpResponse,
-} from "@models/Authentication";
+} from "../Models/Authentication";
 
 const defaultAuthResponse: AuthResponse = {
   res: false,

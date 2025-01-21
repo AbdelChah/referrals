@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import * as Yup from 'yup';
 import { FormikValues } from 'formik';
-import FormWrapper from '@components/FormWrapper';
-import { resetPasswordService } from '@services/authenticationService'; 
-import { ResetPasswordRequest, AuthResponse } from '@models/Authentication';
+import FormWrapper from '../../../components/FormWrapper';
+import { resetPasswordService } from '../../../services/authenticationService'; 
+import { ResetPasswordRequest, AuthResponse } from '../../../Models/Authentication';
 
 // Yup validation schema
 const validationSchema = Yup.object({

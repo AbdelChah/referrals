@@ -1,7 +1,7 @@
 import api from "./axiosInstance";
-import { Campaign } from "@models/Campaign";
+import { Campaign } from "../Models/Campaign";
 
-import { mapApiResponseToCampaign } from "@utils/mapApiResponseToCampaign";
+import { mapApiResponseToCampaign } from "../utils/mapApiResponseToCampaign";
 // import { mapEligibilityCriteriaToApi } from "../utils/mapEligibilityCriteriaToApi";
 
 // Fetch all campaigns

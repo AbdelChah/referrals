@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useLocation } from "react-router-dom";
-import { createCampaign } from "@services/campaignService";
-import { EligibilityCriteria } from "@models/Campaign";
+import { createCampaign } from "../../services/campaignService";
+import { EligibilityCriteria } from "../../Models/Campaign";
 import {
   FormContainer,
   DateFieldsRow,

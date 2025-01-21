@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import UserDetailModal from "./UserDetailModal";
-import { fetchReferrals } from "@services/referralsService";
-import { ReferralsResponse } from "@models/Referral";
+import { fetchReferrals } from "../../services/referralsService";
+import { ReferralsResponse } from "../../Models/Referral";
 import {
   Container,
   StyledTable,
   TableHeaderCell,
   StyledTableCell,
   StyledTableRow,
-} from "@styles/table.styles"; // Use shared styles
-import { StyledButton } from "@styles/button.styles";
+} from "../../styles/table.styles"; // Use shared styles
+import { StyledButton } from "../../styles/button.styles";
 import {
   TableBody,
   TableHead,
@@ -18,7 +18,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { Title } from "@styles/title.styles";
+import { Title } from "../../styles/title.styles";
 
 const ReferralStatusTable: React.FC = () => {
   const [referralData, setReferralData] = useState<ReferralsResponse[]>([]);

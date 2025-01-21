@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import * as Yup from "yup";
 import { FormikValues } from "formik";
-import FormWrapper from "@components/FormWrapper";
+import FormWrapper from "../../../components/FormWrapper";
 import { Link } from "react-router-dom";
 // Yup validation schema for email
 const validationSchema = Yup.object({

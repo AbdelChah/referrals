@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { AuthenticationContext } from "@contexts/AuthenticationContext"; // Adjust import as needed
+import { AuthenticationContext } from "../contexts/AuthenticationContext"; // Adjust import as needed
 import { toast } from "react-toastify";
 
 interface ProtectedRouteProps {
