@@ -21,7 +21,7 @@ services:
     ports:
       - "80:4000"  # Map host port 80 to container port 3000
     environment:
-      - PORT=3000
+      - PORT=4000
       - CLIENT_URL=http://localhost:5173
       
     volumes:
