@@ -10,5 +10,5 @@ COPY ./frontend/admin/build .
 # Expose port 80 for the Nginx server
 EXPOSE 80
 
-# Run Nginx in the foreground
+# Run Nginx in the foreground as the main process
 CMD ["nginx", "-g", "daemon off;"]
