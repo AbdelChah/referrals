@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
     webpack: {
+        devtool: false,
       alias: {
         '@services': path.resolve(__dirname, 'src/services/'),
         '@components': path.resolve(__dirname, 'src/components/'),
