@@ -1,14 +1,14 @@
-# Use the official Nginx image
+# Use a lightweight Nginx image
 FROM nginx:alpine
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /usr/share/nginx/html
 
-# Copy the prebuilt `build` folder to the Nginx default directory
-COPY build/ .
+# Copy the prebuilt `build` folder from the repository
+COPY ./frontend/admin/build .
 
-# Expose the port Nginx will serve on
-EXPOSE 3000
+# Expose port 80 for the Nginx server
+EXPOSE 80
 
-# Start Nginx
+# Run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
