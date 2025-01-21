@@ -31,22 +31,23 @@ services:
     depends_on:
       - mongodb
 
-  frontend:
-    build:
-      context: ./frontend/admin
-      dockerfile: Dockerfile
-    container_name: frontend
-    ports:
-      - "3000:3000"  # Expose frontend on host port 3000 for development
-    environment:
-      - REACT_APP_API_BASE_URL=http://backend:4000  # Internal communication with backend
-    volumes:
-      - ./frontend:/app  
-      - /app/node_modules  # Prevent host node_modules from overwriting container's node_modules
-    networks:
-      - referral_network
-    depends_on:
-      - backend
+frontend:
+  build:
+    context: ./frontend/admin
+    dockerfile: Dockerfile
+  container_name: frontend
+  ports:
+    - "3000:3000"  # Map container's port 3000 to host's port 3000
+  environment:
+    - REACT_APP_API_BASE_URL=http://backend:4000  # Backend API URL
+  volumes:
+    - ./frontend/admin:/usr/src/app  # Mount the source code for live development
+    - /usr/src/app/node_modules      # Prevent overwriting container's node_modules
+  networks:
+    - referral_network
+  depends_on:
+    - backend
+
 
 volumes:
   mongodb_data:
