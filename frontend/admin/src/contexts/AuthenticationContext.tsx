@@ -4,13 +4,13 @@ import {
   validateOtpService,
   logoutService,
   refreshTokenService,
-} from "@services/authenticationService";
+} from "../services/authenticationService";
 import {
   saveTokens,
   getAccessToken,
   getRefreshToken,
   clearTokens,
-} from "@helpers/tokenHelper";
+} from "../helpers/tokenHelper";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
