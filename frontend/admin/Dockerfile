@@ -1,29 +1,20 @@
-# Use an official Node.js 18 image as the base image
-FROM node:18-slim AS build
+# Use the official Node.js image
+FROM node:18
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install
 
-# Copy the rest of the app source code to the container
+# Copy the source code
 COPY . .
 
-# Build the React app for production
-RUN npm run build
+# Expose the port the app runs on
+EXPOSE 3000
 
-# Set up a simple HTTP server to serve the built app
-FROM nginx:alpine
-
-# Copy the build folder from the build image to the nginx folder
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Expose port 80 to access the app
-EXPOSE 80
-
-# Run Nginx in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Command to run the application
+CMD ["npm", "start"]
