@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - "80:4000"  # Expose backend on host port 80
+      - "4000:4000"  
     environment:
       - PORT=4000
       - CLIENT_URL=http://localhost:3000  # For local frontend development
@@ -37,7 +37,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "3000:3000"  # Map container's port 3000 to host's port 3000
+      - "3000:80"  # Map container's port 3000 to host's port 80
     environment:
       - REACT_APP_API_BASE_URL=http://backend:4000  # Backend API URL
     volumes:
