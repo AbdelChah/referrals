@@ -1,0 +1,374 @@
+[
+    {
+        "userId": "user1",
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_A",
+                "campaignName": "Winter Cashback",
+                "referees": [
+                    {
+                        "referralId": "REF123",
+                        "invitee": "John Doe",
+                        "date": "2023-12-01",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF124",
+                        "invitee": "Jane Smith",
+                        "date": "2023-12-02",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    },
+                    {
+                        "referralId": "REF125",
+                        "invitee": "Alice Brown",
+                        "date": "2023-12-03",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF126",
+                        "invitee": "Bob White",
+                        "date": "2023-12-04",
+                        "status": "Pending",
+                        "referralStatus": "Pending"
+                    }
+                ]
+            },
+            {
+                "campaignId": "CAMPAIGN_B",
+                "campaignName": "Holiday Rewards",
+                "referees": [
+                    {
+                        "referralId": "REF127",
+                        "invitee": "Charlie Green",
+                        "date": "2023-12-05",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    },
+                    {
+                        "referralId": "REF128",
+                        "invitee": "Dana Blue",
+                        "date": "2023-12-06",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF129",
+                        "invitee": "Eva Red",
+                        "date": "2023-12-07",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user2",
+        "name": "Jane Smith",
+        "email": "janesmith@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_C",
+                "campaignName": "Campaign C",
+                "referees": [
+                    {
+                        "referralId": "REF130",
+                        "invitee": "Frank Black",
+                        "date": "2023-12-08",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF131",
+                        "invitee": "Grace White",
+                        "date": "2023-12-09",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    },
+                    {
+                        "referralId": "REF132",
+                        "invitee": "Henry Gold",
+                        "date": "2023-12-10",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF133",
+                        "invitee": "Ivy Purple",
+                        "date": "2023-12-11",
+                        "status": "Pending",
+                        "referralStatus": "Pending"
+                    }
+                ]
+            },
+            {
+                "campaignId": "CAMPAIGN_D",
+                "campaignName": "Campaign D",
+                "referees": [
+                    {
+                        "referralId": "REF134",
+                        "invitee": "Jack Orange",
+                        "date": "2023-12-12",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF135",
+                        "invitee": "Karen Brown",
+                        "date": "2023-12-13",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user3",
+        "name": "Alice Brown",
+        "email": "alicebrown@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_E",
+                "campaignName": "Campaign E",
+                "referees": [
+                    {
+                        "referralId": "REF136",
+                        "invitee": "Liam Gray",
+                        "date": "2023-12-14",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF137",
+                        "invitee": "Megan Pink",
+                        "date": "2023-12-15",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    },
+                    {
+                        "referralId": "REF138",
+                        "invitee": "Nina White",
+                        "date": "2023-12-16",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF139",
+                        "invitee": "Oscar Black",
+                        "date": "2023-12-17",
+                        "status": "Pending",
+                        "referralStatus": "Pending"
+                    }
+                ]
+            },
+            {
+                "campaignId": "CAMPAIGN_F",
+                "campaignName": "Campaign F",
+                "referees": [
+                    {
+                        "referralId": "REF140",
+                        "invitee": "Paul Blue",
+                        "date": "2023-12-18",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF141",
+                        "invitee": "Quincy Yellow",
+                        "date": "2023-12-19",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user4",
+        "name": "Bob White",
+        "email": "bobwhite@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_G",
+                "campaignName": "Campaign G",
+                "referees": [
+                    {
+                        "referralId": "REF142",
+                        "invitee": "Riley Pink",
+                        "date": "2023-12-20",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF143",
+                        "invitee": "Sophie Brown",
+                        "date": "2023-12-21",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    },
+                    {
+                        "referralId": "REF144",
+                        "invitee": "Travis White",
+                        "date": "2023-12-22",
+                        "status": "Pending",
+                        "referralStatus": "Pending"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user5",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_H",
+                "campaignName": "Campaign H",
+                "referees": [
+                    {
+                        "referralId": "REF145",
+                        "invitee": "Uma Green",
+                        "date": "2023-12-23",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF146",
+                        "invitee": "Vera Yellow",
+                        "date": "2023-12-24",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user6",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_I",
+                "campaignName": "Campaign I",
+                "referees": [
+                    {
+                        "referralId": "REF147",
+                        "invitee": "Wendy Black",
+                        "date": "2023-12-25",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF148",
+                        "invitee": "Xander White",
+                        "date": "2023-12-26",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user7",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_J",
+                "campaignName": "Campaign J",
+                "referees": [
+                    {
+                        "referralId": "REF149",
+                        "invitee": "Yara Red",
+                        "date": "2023-12-27",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF150",
+                        "invitee": "Zoe Green",
+                        "date": "2023-12-28",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user8",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_K",
+                "campaignName": "Campaign K",
+                "referees": [
+                    {
+                        "referralId": "REF151",
+                        "invitee": "Alice Brown",
+                        "date": "2023-12-29",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    },
+                    {
+                        "referralId": "REF152",
+                        "invitee": "Bob White",
+                        "date": "2023-12-30",
+                        "status": "Pending",
+                        "referralStatus": "Pending"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user9",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_L",
+                "campaignName": "Campaign L",
+                "referees": [
+                    {
+                        "referralId": "REF153",
+                        "invitee": "Charlie Black",
+                        "date": "2023-12-31",
+                        "status": "Active",
+                        "referralStatus": "Active"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "userId": "user10",
+        "name": "Charlie Green",
+        "email": "charliegreen@example.com",
+        "campaigns": [
+            {
+                "campaignId": "CAMPAIGN_M",
+                "campaignName": "Campaign M",
+                "referees": [
+                    {
+                        "referralId": "REF154",
+                        "invitee": "Dana Blue",
+                        "date": "2024-01-01",
+                        "status": "Expired",
+                        "referralStatus": "Expired"
+                    }
+                ]
+            }
+        ]
+    }
+]

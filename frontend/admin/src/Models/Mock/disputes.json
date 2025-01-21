@@ -1,0 +1,73 @@
+[
+    {
+      "id": "D12345",
+      "referrer": "John Doe",
+      "date": "2025-01-01",
+      "status": "Pending",
+      "issue": "Missing reward for referral"
+    },
+    {
+      "id": "D12346",
+      "referrer": "Jane Smith",
+      "date": "2025-01-02",
+      "status": "Resolved",
+      "issue": "Invalid referral marked as active"
+    },
+    {
+      "id": "D12347",
+      "referrer": "Emily Davis",
+      "date": "2025-01-03",
+      "status": "Pending",
+      "issue": "Referral reward not credited"
+    },
+    {
+      "id": "D12348",
+      "referrer": "Michael Brown",
+      "date": "2025-01-04",
+      "status": "Resolved",
+      "issue": "Referral mistakenly declined"
+    },
+    {
+      "id": "D12349",
+      "referrer": "Sophia Williams",
+      "date": "2025-01-05",
+      "status": "Pending",
+      "issue": "Referral status not updated after verification"
+    },
+    {
+      "id": "D12350",
+      "referrer": "Lucas Martinez",
+      "date": "2025-01-06",
+      "status": "Resolved",
+      "issue": "Referral credited with incorrect reward amount"
+    },
+    {
+      "id": "D12351",
+      "referrer": "Olivia Johnson",
+      "date": "2025-01-07",
+      "status": "Pending",
+      "issue": "Referral details not appearing in dashboard"
+    },
+    {
+      "id": "D12352",
+      "referrer": "William Lee",
+      "date": "2025-01-08",
+      "status": "Resolved",
+      "issue": "Incorrect referral status after account suspension"
+    },
+    {
+      "id": "D12353",
+      "referrer": "Charlotte Wilson",
+      "date": "2025-01-09",
+      "status": "Pending",
+      "issue": "Duplicate referral not flagged"
+    },
+    {
+      "id": "D12354",
+      "referrer": "Ethan Moore",
+      "date": "2025-01-10",
+      "status": "Resolved",
+      "issue": "Referral reward not applied despite valid referral"
+    }
+  ]
+  

@@ -1,0 +1,191 @@
+[
+    {
+        "id": "1",
+        "campaignName": "Winter Cashback",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Cash",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": true
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "name": "P2P",
+                    "count": 5
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Debit",
+                    "amount": 1000
+                }
+            }
+        ]
+    },
+    {
+        "id": "2",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "type": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    },
+    {
+        "id": "3",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "type": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    },
+    {
+        "id": "4",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "type": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    },
+    {
+        "id": "5",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "type": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    },
+    {
+        "id": "6",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "type": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    },
+    {
+        "id": "7",
+        "campaignName": "Holiday Rewards",
+        "startDate": "2025-01-01",
+        "endDate": "2025-01-31",
+        "rewardType": "Points",
+        "eligibilityCriterias": [
+            {
+                "name": "eKYC",
+                "eligible": false
+            },
+            {
+                "name": "Transaction",
+                "transaction": {
+                    "name": "Cards",
+                    "count": 10
+                }
+            },
+            {
+                "name": "TransactionFlow",
+                "transactionflow": {
+                    "flow": "Credit",
+                    "amount": 500
+                }
+            }
+        ]
+    }
+]
