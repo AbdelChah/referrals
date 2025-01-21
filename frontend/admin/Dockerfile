@@ -5,7 +5,7 @@ FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
 # Copy the prebuilt `build` folder from the repository
-COPY ./frontend/admin/build .
+COPY ./build .
 
 # Expose port 80 for the Nginx server
 EXPOSE 80
