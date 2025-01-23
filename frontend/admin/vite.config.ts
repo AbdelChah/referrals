@@ -9,6 +9,7 @@ export default defineConfig({
     port: 3000,
   },
   build: {
-    outDir: path.resolve(__dirname, "build"),
+    outDir: path.resolve(__dirname, "build"), // Build output folder
   },
+  base: "/", // Set the base URL to match your deployment setup
 });
