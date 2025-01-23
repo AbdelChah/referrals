@@ -1,14 +1,14 @@
-import styled  from '@emotion/styled';
+import { styled } from '@mui/system';
 
-export const FooterWrapper = styled('footer')`
-  background-color: #fff;
-  color: #98A9BC;
-  padding: 20px;
-  text-align: center;
-  margin-top: auto;
-`;
+export const FooterWrapper = styled('footer')(({ theme }) => ({
+  backgroundColor: '#fff',
+  color: '#98A9BC',
+  padding: '20px',
+  textAlign: 'center',
+  marginTop: 'auto',
+}));
 
-export const FooterText = styled('p')`
-  font-size: 14px;
-  margin: 0;
-`;
+export const FooterText = styled('p')(({ theme }) => ({
+  fontSize: '14px',
+  margin: 0,
+}));

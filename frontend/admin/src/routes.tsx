@@ -102,7 +102,7 @@ const AppRoutes: React.FC = () => {
       />
 
       {/* 404 Not Found Route */}
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
     </Routes>
   );
 };

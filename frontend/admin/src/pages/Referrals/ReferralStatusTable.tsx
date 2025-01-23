@@ -9,7 +9,6 @@ import {
   StyledTableCell,
   StyledTableRow,
 } from "../../styles/table.styles"; // Use shared styles
-import { StyledButton } from "../../styles/button.styles";
 import {
   TableBody,
   TableHead,

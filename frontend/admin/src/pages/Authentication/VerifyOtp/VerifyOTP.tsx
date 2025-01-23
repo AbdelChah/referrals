@@ -84,9 +84,9 @@ const VerifyOTP: React.FC = () => {
             key={index}
             type="text"
             value={digit}
-            onChange={(e) => handleChange(e, index)}
-            onKeyDown={(e) => handleKeyDown(e, index)} // Handle Backspace and Enter
-            ref={(el) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e, index)}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(e, index)} // Handle Backspace and Enter
+            ref={(el: HTMLInputElement | null) => {
               inputRefs.current[index] = el;
             }}
             maxLength={1}

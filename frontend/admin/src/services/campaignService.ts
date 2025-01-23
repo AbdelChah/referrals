@@ -2,13 +2,12 @@ import api from "./axiosInstance";
 import { Campaign } from "../Models/Campaign";
 
 import { mapApiResponseToCampaign } from "../utils/mapApiResponseToCampaign";
-// import { mapEligibilityCriteriaToApi } from "../utils/mapEligibilityCriteriaToApi";
 
 // Fetch all campaigns
 export const fetchCampaigns = async (): Promise<Campaign[]> => {
   try {
     const response = await api.get("/api/campaigns");
-    return response.data.response.map(mapApiResponseToCampaign); // Use .response from API response
+    return response.data.response.map(mapApiResponseToCampaign);
   } catch (error) {
     console.error("Error fetching campaigns:", error);
     throw error;
@@ -24,7 +23,8 @@ export const createCampaign = async (campaignData: {
   status: string;
 }): Promise<any> => {
   try {
-    await api.post("/api/campaigns", campaignData);
+    const response = await api.post("/api/campaigns", campaignData);
+    return response.data;
   } catch (err) {
     throw err;
   }

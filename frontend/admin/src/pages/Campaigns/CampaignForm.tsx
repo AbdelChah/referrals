@@ -112,16 +112,13 @@ const CampaignForm: React.FC = () => {
           status: "active", // Hardcoded for now; you can make this dynamic if needed
         };
 
-        console.log({ formData });
-        // Try creating the campaign
         const response = await createCampaign(formData);
 
         if (!response.res) {
-          // Log failure and show feedback to the user
-          toast.error("Campaign creation failed:", response.responseError.msg);
+          toast.error("Campaign crecreateCampaignation failed:", response.responseError.msg);
           return;
         }
-        // Reset form and navigate only if successful
+        toast.success("Campaign created successfully");
         formik.resetForm();
         setCriteriaList([]);
         navigate("/campaigns");
@@ -318,7 +315,7 @@ const CampaignForm: React.FC = () => {
                       id={`criteriaType-${index}`}
                       name={`criteriaType-${index}`}
                       value={criteria.name}
-                      onChange={(e) =>
+                      onChange={(e: { target: { value: any; }; }) =>
                         handleCriteriaChange(index, "name", e.target.value)
                       }
                     >
@@ -337,7 +334,7 @@ const CampaignForm: React.FC = () => {
                         name={`eligible-${index}`}
                         type="checkbox"
                         checked={criteria.eligible || false}
-                        onChange={(e) =>
+                        onChange={(e: { target: { checked: any; }; }) =>
                           handleCriteriaChange(
                             index,
                             "eligible",
@@ -358,7 +355,7 @@ const CampaignForm: React.FC = () => {
                           id={`transactionType-${index}`}
                           name={`transactionType-${index}`}
                           value={criteria.transaction?.type || "P2P"}
-                          onChange={(e) =>
+                          onChange={(e: { target: { value: any; }; }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
                               type: e.target.value,
@@ -381,7 +378,7 @@ const CampaignForm: React.FC = () => {
                           name={`transactionCount-${index}`}
                           type="number"
                           value={criteria.transaction?.count || ''}
-                          onChange={(e) =>
+                          onChange={(e: { target: { value: string; }; }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
                               count: e.target.value
@@ -402,7 +399,7 @@ const CampaignForm: React.FC = () => {
                           id={`transactionFlow-${index}`}
                           name={`transactionFlow-${index}`}
                           value={criteria.transactionFlow?.flow || "Debit"}
-                          onChange={(e) =>
+                          onChange={(e: { target: { value: any; }; }) =>
                             handleCriteriaChange(index, "name", {
                               ...criteria.transactionFlow,
                               flow: e.target.value,
@@ -423,7 +420,7 @@ const CampaignForm: React.FC = () => {
                           name={`transactionAmount-${index}`}
                           type="number"
                           value={criteria.transactionFlow?.amount || ''}
-                          onChange={(e) =>
+                          onChange={(e: { target: { value: string; }; }) =>
                             handleCriteriaChange(index, "transactionFlow", {
                               ...criteria.transactionFlow,
                               amount: e.target.value

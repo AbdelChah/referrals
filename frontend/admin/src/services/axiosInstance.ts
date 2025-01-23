@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from '../helpers/tokenHelper';
 
+const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
 // Axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL,
+  baseURL: apiUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

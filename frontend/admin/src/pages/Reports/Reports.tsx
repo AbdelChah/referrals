@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 // import { StyledTable, StyledTableRow, TableHeaderCell, StyledTableCell, StyledButton } from "../../styles/table.styles";
 // import { Title } from "../../styles/title.styles";
 // import campaignsJson from "../../Models/Mock/campaigns.json";

@@ -12,10 +12,11 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
+  const themeVariable = import.meta.env.VITE_THEME
   const theme =
-  process.env.REACT_APP_THEME === 'bob'
+  themeVariable === 'bob'
     ? bobTheme
-    : process.env.REACT_APP_THEME === 'weepay'
+    : themeVariable === 'weepay'
     ? weepayTheme
     : defaultTheme;
 

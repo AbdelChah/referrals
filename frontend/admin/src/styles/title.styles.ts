@@ -1,5 +1,5 @@
-import styled from "@emotion/styled";
+import { styled } from '@mui/system';
 
-export const Title = styled.h1`
-  text-align: center;
-`;
+export const Title = styled('h1')(() => ({
+  textAlign: 'center',
+}));

@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { AuthenticationContext } from "../contexts/AuthenticationContext";
 
 const Header: React.FC = () => {
-  const theme = process.env.REACT_APP_THEME || "default";
+  const theme = import.meta.env.VITE_THEME  || "default";
+
   const logoSrc =
     theme === "bob"
       ? "/assets/images/bob-logo.png"

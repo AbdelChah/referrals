@@ -1,42 +1,18 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
     "module": "ESNext",
-    "target": "ES6",
-    "lib": [
-      "es6",
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
     "baseUrl": "./src",
-    "paths": {
-      "@services/*": ["services/*"],
-      "@components/*": ["components/*"],
-      "@models/*": ["Models/*"],
-      "@utils/*": ["utils/*"],
-      "@hooks/*": ["hooks/*"],
-      "@helpers/*": ["helpers/*"],
-      "@styles/*": ["styles/*"],
-      "@contexts/*": ["contexts/*"],
-      "@theme/*": ["theme/*"],
-    }
+    "paths": { "@/*": ["./*"] },
+    "typeRoots": ["node_modules/@types"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src", "vite-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }
