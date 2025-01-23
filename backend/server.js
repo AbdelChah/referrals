@@ -17,9 +17,10 @@ connectDB();
 
 // Middleware
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173', // Local dev
-  'http://localhost:3000', // Frontend on a different local dev
-  'http://referrals.bank-juno.com', // Deployed frontend
+  process.env.CLIENT_URL , // env value
+  'http://localhost:3000' || 'http://localhost:5173', // different local devs (Pamela + Vite)
+  'https://referrals.bank-juno.com', // Deployed frontend https
+  'http://referrals.bank-juno.com', // Deployed frontend http (testing with Pamela)
 ];
 
 app.use(cors({
