@@ -17,18 +17,18 @@ import { FormikValues } from "formik";
 import { toast } from "react-toastify";
 
 const AdminSettings: React.FC = () => {
-  const [admins, setAdmins] = useState<{ name: string; email: string }[]>([]);
+  const [admins, setAdmins] = useState<{ username: string; email: string }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleAddAdmin = (values: FormikValues) => {
-    const { name, email } = values;
+    const { username, email } = values;
 
-    setAdmins([...admins, { name, email }]); // Add new admin to the list
+    setAdmins([...admins, { username, email }]); // Add new admin to the list
     setIsModalOpen(false); // Close the modal after submission
-    toast.success(`${name} added successfully`, {
+    toast.success(`${username} added successfully`, {
       hideProgressBar: true,
     });
 
@@ -67,7 +67,7 @@ const AdminSettings: React.FC = () => {
               {admins.map((admin, index) => (
                 <TableRow key={index}>
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell>{admin.name}</TableCell>
+                  <TableCell>{admin.username}</TableCell>
                   <TableCell>{admin.email}</TableCell>
                 </TableRow>
               ))}

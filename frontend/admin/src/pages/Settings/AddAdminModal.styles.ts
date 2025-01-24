@@ -20,7 +20,7 @@ export const ModalContent = styled('div')(() => ({
 
 export const CloseButton = styled(IconButton)(() => ({
   position: 'absolute',
-  top: '-20px',
+  top: '-69px',
   right: '10px',
   color: 'gray',
   '&:hover': {

@@ -15,13 +15,7 @@ export const fetchCampaigns = async (): Promise<Campaign[]> => {
 };
 
 // Create a new campaign
-export const createCampaign = async (campaignData: {
-  name: string;
-  start_date: string;
-  end_date: string;
-  reward_criteria: any;
-  status: string;
-}): Promise<any> => {
+export const createCampaign = async (campaignData: any): Promise<any> => {
   try {
     const response = await api.post("/api/campaigns", campaignData);
     return response.data;

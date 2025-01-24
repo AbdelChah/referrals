@@ -38,6 +38,7 @@ interface AuthenticationProviderProps {
 export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
   children,
 }) => {
+  const [refreshing, setRefreshing] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true); // Track loading state for authentication check
   const [authChecked, setAuthChecked] = useState<boolean>(false); // Flag to ensure effect runs only once
@@ -46,6 +47,8 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
   // Perform the authentication check only once on component mount
   useEffect(() => {
     const initializeAuth = async () => {
+      if (refreshing) return; // Avoid refreshing if already in progress
+  
       const accessToken = getAccessToken();
       const refreshToken = getRefreshToken();
   
@@ -65,9 +68,8 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
     if (!authChecked) {
       initializeAuth();  // Run the authentication check once
     }
-  }, [authChecked]);  // Ensure it runs only once
+  }, [authChecked, refreshing]);  // Ensure it runs only once and respects the refreshing state
   
-
   const login = async (
     username: string,
     password: string,
@@ -116,7 +118,7 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
 
   const logout = async (): Promise<void> => {
     const refreshToken = getRefreshToken();
-  
+
     if (refreshToken) {
       try {
         const response = await logoutService(refreshToken);
@@ -125,7 +127,7 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
           setIsAuthenticated(false);
           sessionStorage.removeItem("tempUsername");
           toast.info("You have been logged out.", {
-            hideProgressBar: true
+            hideProgressBar: true,
           });
         } else {
           toast.error("Logout failed.");
@@ -144,7 +146,6 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
       toast.info("No refresh token found, logged out.");
     }
   };
-  
 
   const validateOtp = async (otp: string): Promise<void> => {
     const tempUsername = sessionStorage.getItem("tempUsername");
@@ -180,11 +181,14 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
     }
   };
 
-
   const refreshAuthToken = async (): Promise<void> => {
+    if (refreshing) return; // Prevent multiple simultaneous refresh requests
+    setRefreshing(true);
+  
     const refreshToken = getRefreshToken();
     if (!refreshToken) {
       logout(); // Log out if no refresh token is found
+      setRefreshing(false);
       return;
     }
   
@@ -194,19 +198,27 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
       if (response.res && response.response?.data) {
         const newAccessToken = response.response?.data.accessToken;
         const newRefreshToken = response.response?.data.refreshToken;
-
+  
         if (newAccessToken) {
-          saveTokens(newAccessToken, newRefreshToken || refreshToken); // Save the new access token and refresh token (if returned)
+          saveTokens(newAccessToken, newRefreshToken || refreshToken); // Save new tokens
           setIsAuthenticated(true); // Mark the user as authenticated
         } else {
           logout(); // Log out if no valid access token is returned
         }
       } else {
-        logout(); // Log out if the API response is invalid
+        if (response.responseError?.errCode === "19021") {
+          // Token does not exist in the database
+          toast.error("Your session has expired. Please log in again.");
+          logout(); // Log out if refresh token is invalid
+        } else {
+          logout(); // Log out for other reasons
+        }
       }
     } catch (error) {
       console.error("Token refresh error:", error);
       logout(); // Log out if token refresh fails
+    } finally {
+      setRefreshing(false); // Reset the refreshing state after refresh attempt
     }
   };
   

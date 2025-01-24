@@ -89,33 +89,64 @@ const CampaignForm: React.FC = () => {
       eligibilityCriteria: Yup.string()
         .required("Eligibility Criteria is required")
         .test(
-          "is-not-empty",
-          "You must provide at least one eKYC, Transaction, and TransactionFlow criteria",
+          "valid-criteria-combination",
+          "Invalid eligibility criteria combination",
           function (value) {
             const criteria = JSON.parse(value || "[]");
-            const hasEkyc = criteria.some((item: { name: string; }) => item.name === "eKYC");
-            const hasTransaction = criteria.some((item: { name: string; }) => item.name === "Transaction");
-            const hasTransactionFlow = criteria.some((item: { name: string; }) => item.name === "TransactionFlow");
-            return hasEkyc && hasTransaction && hasTransactionFlow;
+
+            const hasEkyc = criteria.some(
+              (item: { name: string }) => item.name === "eKYC"
+            );
+            const hasTransaction = criteria.some(
+              (item: { name: string }) => item.name === "Transaction"
+            );
+            const hasTransactionFlow = criteria.some(
+              (item: { name: string }) => item.name === "TransactionFlow"
+            );
+
+            if (!hasEkyc && !hasTransaction && !hasTransactionFlow) {
+              return this.createError({
+                message:
+                  "You must provide at least one eKYC, Transaction, or Transaction Flow criteria.",
+              });
+            }
+
+            if (hasTransaction && hasTransactionFlow) {
+              return this.createError({
+                message:
+                  "You cannot have both Transaction and Transaction Flow criteria together.",
+              });
+            }
+
+            return true;
           }
         ),
-        minReferees: Yup.number().required("Minimum number of referees is required").positive("Number must be positive")
+
+      minReferees: Yup.number()
+        .required("Minimum number of referees is required")
+        .positive("Number must be positive"),
     }),
     onSubmit: async (values) => {
       try {
-        const formData = {
+        const formData: any = {
           name: values.campaignName,
           start_date: values.fromDate,
           end_date: values.toDate,
-          reward_criteria: mapEligibilityCriteriaToApi(criteriaList),
+          reward_criteria: mapEligibilityCriteriaToApi(
+            criteriaList,
+            values.rewardAmount,
+            values.rewardCurrency
+          ),
           min_referees: values.minReferees,
           status: "active", // Hardcoded for now; you can make this dynamic if needed
         };
-
         const response = await createCampaign(formData);
 
         if (!response.res) {
-          toast.error("Campaign crecreateCampaignation failed:", response.responseError.msg);
+          toast.error(
+            "Campaign crecreateCampaignation failed:",
+            response.responseError.msg
+          );
           return;
         }
         toast.success("Campaign created successfully");
@@ -147,9 +178,17 @@ const CampaignForm: React.FC = () => {
   };
 
   const handleAddCriteria = () => {
-    
-    setCriteriaList([...criteriaList, { name: "eKYC", eligible: true }]); // Default to eKYC
+    const newCriteriaList: EligibilityCriteria[] = [
+      ...criteriaList,
+      { name: "eKYC", eligible: true },
+    ];
+    setCriteriaList(newCriteriaList);
+    formik.setFieldValue("eligibilityCriteria", JSON.stringify(newCriteriaList)); // Update eligibilityCriteria field in Formik
   };
+
+  // const handleAddCriteria = () => {
+  //   setCriteriaList([...criteriaList, { name: "eKYC", eligible: true }]); // Default to eKYC
+  // };
 
   const handleRemoveCriteria = (index: number) => {
     const updatedCriteriaList = criteriaList.filter((_, i) => i !== index);
@@ -295,11 +334,11 @@ const CampaignForm: React.FC = () => {
         <div>
           <Label>Eligibility Criteria</Label>
           <ErrorMessage>
-                  {formik.touched.eligibilityCriteria &&
-                  typeof formik.errors.eligibilityCriteria === "string"
-                    ? formik.errors.eligibilityCriteria
-                    : ""}
-                </ErrorMessage>
+            {formik.touched.eligibilityCriteria &&
+            typeof formik.errors.eligibilityCriteria === "string"
+              ? formik.errors.eligibilityCriteria
+              : ""}
+          </ErrorMessage>
           {criteriaList.length === 0 ? (
             <NoCriteriaMessage>
               No criteria added yet. Click "Add Criteria" to begin.
@@ -315,7 +354,7 @@ const CampaignForm: React.FC = () => {
                       id={`criteriaType-${index}`}
                       name={`criteriaType-${index}`}
                       value={criteria.name}
-                      onChange={(e: { target: { value: any; }; }) =>
+                      onChange={(e: { target: { value: any } }) =>
                         handleCriteriaChange(index, "name", e.target.value)
                       }
                     >
@@ -334,7 +373,7 @@ const CampaignForm: React.FC = () => {
                         name={`eligible-${index}`}
                         type="checkbox"
                         checked={criteria.eligible || false}
-                        onChange={(e: { target: { checked: any; }; }) =>
+                        onChange={(e: { target: { checked: any } }) =>
                           handleCriteriaChange(
                             index,
                             "eligible",
@@ -354,8 +393,8 @@ const CampaignForm: React.FC = () => {
                         <SelectField
                           id={`transactionType-${index}`}
                           name={`transactionType-${index}`}
-                          value={criteria.transaction?.type || "P2P"}
-                          onChange={(e: { target: { value: any; }; }) =>
+                          value={criteria.transaction?.type || "CASH_IN"}
+                          onChange={(e: { target: { value: any } }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
                               type: e.target.value,
@@ -366,6 +405,7 @@ const CampaignForm: React.FC = () => {
                           <option value="QR Code">QR Code</option>
                           <option value="Cards">Cards</option>
                           <option value="POS">POS</option>
+                          <option value="CASH_IN">CASH IN</option>
                         </SelectField>
                       </div>
 
@@ -377,8 +417,8 @@ const CampaignForm: React.FC = () => {
                           id={`transactionCount-${index}`}
                           name={`transactionCount-${index}`}
                           type="number"
-                          value={criteria.transaction?.count || ''}
-                          onChange={(e: { target: { value: string; }; }) =>
+                          value={criteria.transaction?.count || ""}
+                          onChange={(e: { target: { value: string } }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
                               count: e.target.value
@@ -399,7 +439,7 @@ const CampaignForm: React.FC = () => {
                           id={`transactionFlow-${index}`}
                           name={`transactionFlow-${index}`}
                           value={criteria.transactionFlow?.flow || "Debit"}
-                          onChange={(e: { target: { value: any; }; }) =>
+                          onChange={(e: { target: { value: any } }) =>
                             handleCriteriaChange(index, "name", {
                               ...criteria.transactionFlow,
                               flow: e.target.value,
@@ -419,8 +459,8 @@ const CampaignForm: React.FC = () => {
                           id={`transactionAmount-${index}`}
                           name={`transactionAmount-${index}`}
                           type="number"
-                          value={criteria.transactionFlow?.amount || ''}
-                          onChange={(e: { target: { value: string; }; }) =>
+                          value={criteria.transactionFlow?.amount || ""}
+                          onChange={(e: { target: { value: string } }) =>
                             handleCriteriaChange(index, "transactionFlow", {
                               ...criteria.transactionFlow,
                               amount: e.target.value

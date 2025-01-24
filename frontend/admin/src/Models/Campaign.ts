@@ -8,7 +8,7 @@ export interface Campaign {
   rewardAmount: number; // Reward amount
   rewardCurrency: string; // Reward currency (e.g., USD)
   eligibilityCriteria: EligibilityCriteria[]; // Array of eligibility criteria
-  status? : string;
+  status?: string;
   min_referees?: number;
 }
 
