@@ -319,7 +319,7 @@ exports.refereeAction = async (req, res) => {
                     details: { transaction, amount, currency },
                     date: new Date(),
                 });
-                
+
                 refereeData.status = false;
                 await referral.save({ session });
                 await session.commitTransaction();
@@ -364,6 +364,7 @@ exports.refereeAction = async (req, res) => {
             await referral.save({ session });
             await session.commitTransaction();
 
+            
             return res.status(200).json({
                 res: true,
                 response: {
@@ -397,8 +398,6 @@ exports.refereeAction = async (req, res) => {
         session.endSession();
     }
 };
-
-
 
 exports.getRefereesStatus = async (req, res) => {
     try {
