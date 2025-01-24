@@ -247,7 +247,7 @@ exports.refereeAction = async (req, res) => {
             });
         }
 
-        // Fetch associated campaign
+        // Fetch associated campaign (not part of the session on purpose, but it’s okay to do so as needed)
         const campaign = await Campaign.findById(referral.campaign_id).exec();
         if (!campaign) {
             await session.abortTransaction();
@@ -269,13 +269,17 @@ exports.refereeAction = async (req, res) => {
                 referee_phone: referee,
                 status: false, // Default status
                 actions: [],
-                rewards: { onBoarding: false, transaction: false },
+                rewards: {
+                    onBoarding: false,
+                    transaction: false,
+                    transactionsCount: 0, // Track how many valid transactions this referee has made
+                },
             });
         }
 
         const refereeData = referral.referees[refereeIndex];
 
-        // Handle onboarding action
+        // =============== HANDLE ONBOARDING ACTION ===============
         if (action === 'onBoarding') {
             if (refereeData.rewards.onBoarding) {
                 await session.abortTransaction();
@@ -303,23 +307,63 @@ exports.refereeAction = async (req, res) => {
             });
         }
 
-        // Handle transaction action
+        // =============== HANDLE TRANSACTION ACTION ===============
         if (action === 'transaction') {
             const criteria = campaign.reward_criteria.transaction;
 
-            // Validate transaction fields
-            if (
-                amount < criteria.minAmount ||
-                criteria.currency !== currency ||
-                criteria.transaction_type !== transaction ||
-                criteria.debitOrCredit !== debitOrCredit
-            ) {
+            // If the campaign does not have transaction criteria, abort
+            if (!criteria) {
+                // Possibly the campaign only has onBoarding criteria
                 refereeData.actions.push({
                     type: action,
                     details: { transaction, amount, currency },
                     date: new Date(),
                 });
-                
+                await referral.save({ session });
+                await session.commitTransaction();
+
+                return res.status(200).json({
+                    res: true,
+                    response: {
+                        msg: 'Transaction logged, but this campaign has no transaction reward criteria.',
+                    },
+                });
+            }
+
+            const { minAmount, reward, currency: campaignCurrency, transaction_type, debitOrCredit: campaignDebitOrCredit, count } = criteria;
+
+            // ========== DYNAMIC VALIDATION ==========
+            // We only check a field if it exists in the criteria.
+            // For example, if 'transaction_type' is undefined in the campaign,
+            // we do NOT fail the validation for that reason.
+
+            let isValid = true;
+            // 1. Minimum amount
+            if (typeof minAmount === 'number' && amount < minAmount) {
+                isValid = false;
+            }
+            // 2. Currency
+            if (campaignCurrency && campaignCurrency !== currency) {
+                isValid = false;
+            }
+            // 3. Transaction type (e.g. 'CASH_OUT', 'TRANSFER', etc.)
+            if (transaction_type && transaction_type !== transaction) {
+                isValid = false;
+            }
+            // 4. Debit/Credit
+            if (campaignDebitOrCredit && campaignDebitOrCredit !== debitOrCredit) {
+                isValid = false;
+            }
+
+            // Log the transaction attempt
+            refereeData.actions.push({
+                type: action,
+                details: { transaction, amount, currency },
+                date: new Date(),
+            });
+
+            if (!isValid) {
+                // This transaction does not meet reward criteria
                 refereeData.status = false;
                 await referral.save({ session });
                 await session.commitTransaction();
@@ -332,33 +376,49 @@ exports.refereeAction = async (req, res) => {
                 });
             }
 
-            // Log the transaction action and mark status as true
-            refereeData.actions.push({
-                type: action,
-                details: { transaction, amount, currency },
-                date: new Date(),
-            });
+            // ========== VALID TRANSACTION ==========
 
-            refereeData.status = true;
-            refereeData.rewards.transaction = true;
+            // Increment the number of valid transactions for this referee
+            if (typeof refereeData.rewards.transactionsCount !== 'number') {
+                refereeData.rewards.transactionsCount = 0;
+            }
+            refereeData.rewards.transactionsCount += 1;
 
-            // Count referees with valid transactions (status: true)
+            // Check if the referee now meets the required count
+            if (refereeData.rewards.transactionsCount >= count) {
+                // Mark the referee's transaction as rewarded
+                refereeData.status = true;
+                refereeData.rewards.transaction = true;
+            } else {
+                // Still hasn't reached required count, so mark status as false
+                refereeData.status = false;
+                refereeData.rewards.transaction = false;
+            }
+
+            // Recount how many referees have 'status = true'
             const validRefereesCount = referral.referees.filter(r => r.status).length;
-
-            // Update total rewards
             referral.total_rewards = validRefereesCount;
 
-            // Dispatch reward to referrer if min_referees condition is met
-            if (validRefereesCount === campaign.min_referees) {
-                await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
-                    application,
-                    referrer: referral.referrer_phone,
-                    amount: criteria.reward,
-                    currency,
-                    referralId,
-                });
-
-                console.log('Reward dispatched to referrer.');
+            // Only dispatch reward if:
+            //    (1) The referee indeed meets transaction count (status = true),
+            //    (2) The total referees who meet criteria = min_referees
+            if (refereeData.status && validRefereesCount === campaign.min_referees) {
+                try {
+                    await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
+                        application,
+                        referrer: referral.referrer_phone,
+                        amount: reward,      // from campaign criteria
+                        currency,
+                        referralId,
+                    });
+                    console.log('Reward dispatched to referrer.');
+                } catch (dispatchError) {
+                    console.error('Error dispatching reward:', dispatchError);
+                    // NOTE: If you do not want to rollback the transaction
+                    // because the external call failed, you can just log
+                    // and continue. Otherwise, you can `throw` to abort.
+                    // For now, let's just log it and proceed.
+                }
             }
 
             await referral.save({ session });
@@ -367,11 +427,12 @@ exports.refereeAction = async (req, res) => {
             return res.status(200).json({
                 res: true,
                 response: {
-                    msg: 'Transaction processed and reward dispatched if eligible.',
+                    msg: 'Transaction processed. Reward dispatched if eligible.',
                 },
             });
         }
 
+        // =============== INVALID ACTION ===============
         await session.abortTransaction();
         return res.status(400).json({
             res: false,
