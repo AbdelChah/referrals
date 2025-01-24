@@ -304,99 +304,73 @@ exports.refereeAction = async (req, res) => {
         }
 
         // Handle transaction action
-if (action === 'transaction') {
-    const criteria = campaign.reward_criteria.transaction;
+        if (action === 'transaction') {
+            const criteria = campaign.reward_criteria.transaction;
 
-    // Validate transaction fields
-    if (
-        amount < criteria.minAmount || // Check if the amount meets the minimum
-        criteria.currency !== currency || // Check if the currency matches
-        (criteria.transaction_type && criteria.transaction_type !== transaction) || // Check if transaction_type matches (if provided)
-        (criteria.debitOrCredit && criteria.debitOrCredit !== debitOrCredit) // Check if debitOrCredit matches (if provided)
-    ) {
-        refereeData.actions.push({
-            type: action,
-            details: { transaction, amount, currency },
-            date: new Date(),
-        });
+            // Validate transaction fields
+            if (
+                amount < criteria.minAmount ||
+                criteria.currency !== currency ||
+                criteria.transaction_type !== transaction ||
+                criteria.debitOrCredit !== debitOrCredit
+            ) {
+                refereeData.actions.push({
+                    type: action,
+                    details: { transaction, amount, currency },
+                    date: new Date(),
+                });
+                
+                refereeData.status = false;
+                await referral.save({ session });
+                await session.commitTransaction();
 
-        refereeData.status = false;
-        await referral.save({ session });
-        await session.commitTransaction();
+                return res.status(200).json({
+                    res: true,
+                    response: {
+                        msg: 'Transaction action logged. No reward dispatched.',
+                    },
+                });
+            }
 
-        return res.status(200).json({
-            res: true,
-            response: {
-                msg: 'Transaction action logged. No reward dispatched.',
-            },
-        });
-    }
+            // Log the transaction action and mark status as true
+            refereeData.actions.push({
+                type: action,
+                details: { transaction, amount, currency },
+                date: new Date(),
+            });
 
-    // Count existing transactions for the referee
-    const transactionCount = refereeData.actions.filter(
-        (a) => a.type === 'transaction'
-    ).length;
+            refereeData.status = true;
+            refereeData.rewards.transaction = true;
 
-    // Check if the number of transactions meets the required count
-    if (transactionCount + 1 < criteria.count) {
-        refereeData.actions.push({
-            type: action,
-            details: { transaction, amount, currency },
-            date: new Date(),
-        });
+            // Count referees with valid transactions (status: true)
+            const validRefereesCount = referral.referees.filter(r => r.status).length;
 
-        refereeData.status = false;
-        await referral.save({ session });
-        await session.commitTransaction();
+            // Update total rewards
+            referral.total_rewards = validRefereesCount;
 
-        return res.status(200).json({
-            res: true,
-            response: {
-                msg: `Transaction logged but ${criteria.count - (transactionCount + 1)} more transactions required to qualify.`,
-            },
-        });
-    }
+            // Dispatch reward to referrer if min_referees condition is met
+            if (validRefereesCount === campaign.min_referees) {
+                await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
+                    application,
+                    referrer: referral.referrer_phone,
+                    amount: criteria.reward,
+                    currency,
+                    referralId,
+                });
 
-    // Log the transaction action and mark the referee as valid
-    refereeData.actions.push({
-        type: action,
-        details: { transaction, amount, currency },
-        date: new Date(),
-    });
+                console.log('Reward dispatched to referrer.');
+            }
 
-    refereeData.status = true;
-    refereeData.rewards.transaction = true;
+            await referral.save({ session });
+            await session.commitTransaction();
 
-    // Count referees with valid transactions (status: true)
-    const validRefereesCount = referral.referees.filter((r) => r.status).length;
-
-    // Update total rewards
-    referral.total_rewards = validRefereesCount;
-
-    // Dispatch reward to referrer if min_referees condition is met
-    if (validRefereesCount === campaign.min_referees) {
-        await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
-            application,
-            referrer: referral.referrer_phone,
-            amount: criteria.reward,
-            currency,
-            referralId,
-        });
-
-        console.log('Reward dispatched to referrer.');
-    }
-
-    await referral.save({ session });
-    await session.commitTransaction();
-
-    return res.status(200).json({
-        res: true,
-        response: {
-            msg: 'Transaction processed and reward dispatched if eligible.',
-        },
-    });
-}
-
+            return res.status(200).json({
+                res: true,
+                response: {
+                    msg: 'Transaction processed and reward dispatched if eligible.',
+                },
+            });
+        }
 
         await session.abortTransaction();
         return res.status(400).json({
