@@ -1,23 +1,17 @@
-# Use the official Node.js image
-FROM node:18
+# Use a lightweight Nginx image
+FROM nginx:alpine
 
-# Set the working directory inside the container
-WORKDIR /usr/src/app
+# Set working directory inside the container
+WORKDIR /usr/share/nginx/html
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Remove any existing files in the directory (to avoid conflicts)
+RUN rm -rf ./*
 
-# Install dependencies
-RUN npm install
+# Copy the Vite `build` output into the container
+COPY ./build .
 
-# Copy the source code
-COPY . .
+# Expose port 80 for the Nginx server
+EXPOSE 80
 
-# Build
-RUN npm run build
-
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Command to run the application
-CMD ["npm", "start"]
+# Run Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
