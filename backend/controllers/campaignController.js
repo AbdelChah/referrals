@@ -55,6 +55,49 @@ exports.createCampaign = async (req, res) => {
           });
       }
 
+      // Validate reward_criteria
+      if (!reward_criteria.onBoarding || typeof reward_criteria.onBoarding.reward !== 'number') {
+          return res.status(400).json({
+              res: false,
+              responseError: {
+                  msg: 'Invalid reward_criteria for onboarding. Reward must be a number.',
+                  errCode: '19183',
+                  msgAPI: 'Invalid reward_criteria.',
+              },
+          });
+      }
+
+      const transactionCriteria = reward_criteria.transaction;
+
+      if (
+          !transactionCriteria ||
+          typeof transactionCriteria.minAmount !== 'number' ||
+          typeof transactionCriteria.reward !== 'number' ||
+          typeof transactionCriteria.currency !== 'string' ||
+          typeof transactionCriteria.count !== 'number'
+      ) {
+          return res.status(400).json({
+              res: false,
+              responseError: {
+                  msg: 'Invalid reward_criteria for transactions. Ensure minAmount, reward, currency, and count are provided.',
+                  errCode: '19184',
+                  msgAPI: 'Invalid reward_criteria.',
+              },
+          });
+      }
+
+      // Validate transaction_type and debitOrCredit exclusivity
+      if (transactionCriteria.transaction_type && transactionCriteria.debitOrCredit) {
+          return res.status(400).json({
+              res: false,
+              responseError: {
+                  msg: 'transaction_type and debitOrCredit cannot both be provided.',
+                  errCode: '19185',
+                  msgAPI: 'Invalid reward_criteria.',
+              },
+          });
+      }
+
       // Ensure only one active campaign exists
       const activeCampaign = await Campaign.findOne({ status: 'active' });
       if (activeCampaign) {
@@ -76,7 +119,7 @@ exports.createCampaign = async (req, res) => {
           end_date: new Date(end_date),
           reward_criteria,
           status: status || 'active',
-          min_referees, // Ensure this is correctly passed
+          min_referees,
       });
 
       const savedCampaign = await campaign.save();
@@ -102,6 +145,7 @@ exports.createCampaign = async (req, res) => {
       });
   }
 };
+
 
 
 
