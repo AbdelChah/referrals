@@ -43,20 +43,20 @@ exports.createCampaign = async (req, res) => {
           });
       }
 
-      // Validate date range
-      if (new Date(start_date) >= new Date(end_date)) {
+      // Ensure at least one of onBoarding or transaction is provided in reward_criteria
+      if (!reward_criteria.onBoarding && !reward_criteria.transaction) {
           return res.status(400).json({
               res: false,
               responseError: {
-                  msg: 'Start date must be earlier than end date.',
-                  errCode: '19182',
-                  msgAPI: 'Invalid date range.',
+                  msg: 'At least one of onBoarding or transaction criteria must be provided.',
+                  errCode: '19183',
+                  msgAPI: 'Invalid reward_criteria.',
               },
           });
       }
 
-      // Validate reward_criteria
-      if (!reward_criteria.onBoarding || typeof reward_criteria.onBoarding.reward !== 'number') {
+      // Validate onBoarding criteria
+      if (reward_criteria.onBoarding && typeof reward_criteria.onBoarding.reward !== 'number') {
           return res.status(400).json({
               res: false,
               responseError: {
@@ -67,33 +67,36 @@ exports.createCampaign = async (req, res) => {
           });
       }
 
-      const transactionCriteria = reward_criteria.transaction;
+      // Validate transaction criteria
+      if (reward_criteria.transaction) {
+          const { minAmount, reward, currency, count, transaction_type, debitOrCredit } = reward_criteria.transaction;
 
-      if (
-          !transactionCriteria ||
-          typeof transactionCriteria.minAmount !== 'number' ||
-          typeof transactionCriteria.reward !== 'number' ||
-          typeof transactionCriteria.currency !== 'string' ||
-          typeof transactionCriteria.count !== 'number'
-      ) {
-          return res.status(400).json({
-              res: false,
-              responseError: {
-                  msg: 'Invalid reward_criteria for transactions. Ensure minAmount, reward, currency, and count are provided.',
-                  errCode: '19184',
-                  msgAPI: 'Invalid reward_criteria.',
-              },
-          });
+          if (
+              typeof minAmount !== 'number' ||
+              typeof reward !== 'number' ||
+              typeof count !== 'number' ||
+              !currency ||
+              (transaction_type && debitOrCredit) // Ensure transaction_type and debitOrCredit are exclusive
+          ) {
+              return res.status(400).json({
+                  res: false,
+                  responseError: {
+                      msg: 'Invalid reward_criteria for transaction. Check fields and exclusivity of transaction_type and debitOrCredit.',
+                      errCode: '19183',
+                      msgAPI: 'Invalid reward_criteria.',
+                  },
+              });
+          }
       }
 
-      // Validate transaction_type and debitOrCredit exclusivity
-      if (transactionCriteria.transaction_type && transactionCriteria.debitOrCredit) {
+      // Validate date range
+      if (new Date(start_date) >= new Date(end_date)) {
           return res.status(400).json({
               res: false,
               responseError: {
-                  msg: 'transaction_type and debitOrCredit cannot both be provided.',
-                  errCode: '19185',
-                  msgAPI: 'Invalid reward_criteria.',
+                  msg: 'Start date must be earlier than end date.',
+                  errCode: '19182',
+                  msgAPI: 'Invalid date range.',
               },
           });
       }
@@ -145,7 +148,6 @@ exports.createCampaign = async (req, res) => {
       });
   }
 };
-
 
 
 
