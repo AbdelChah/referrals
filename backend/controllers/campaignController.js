@@ -353,7 +353,7 @@ exports.deleteCampaign = async (req, res) => {
   try {
     const { campaignId } = req.params;
 
-    const campaign = await Campaign.findOneAndDelete({ campaign_id: campaignId });
+    const campaign = await Campaign.findOneAndDelete({ _id: campaignId });
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found' });
     }
