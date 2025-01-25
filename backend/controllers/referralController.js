@@ -27,6 +27,41 @@ const fetchMultivalues = async () => {
     }
 };
 
+// Helper: Check if a referee meets ALL relevant criteria from the campaign
+function checkRefereeEligibility(campaign, refereeData) {
+    const { onBoarding, transaction_flow, transaction } = campaign.reward_criteria;
+  
+    // 1) onBoarding check
+    if (onBoarding === true && !refereeData.rewards.onBoarding) {
+      return false;
+    }
+  
+    // 2) transaction_flow check
+    //    If transaction_flow is provided with a debitOrCredit, then we require refereeData.rewards.transaction_flow
+    if (transaction_flow && transaction_flow.debitOrCredit) {
+      if (!refereeData.rewards.transaction_flow) {
+        return false;
+      }
+    }
+  
+    // 3) transaction check
+    //    If transaction is provided with a non-empty array of transaction_type, we require transaction_type = true
+    if (
+      transaction &&
+      Array.isArray(transaction.transaction_type) &&
+      transaction.transaction_type.length > 0
+    ) {
+      // The campaign actually requires typed transactions
+      if (!refereeData.rewards.transaction_type) {
+        return false;
+      }
+    }
+    // else if transaction.transaction_type.length === 0, we treat it as "no transaction requirement"
+  
+    // If we pass all checks, they're fully eligible
+    return true;
+  }
+
 // Generate a unique referral code
 const generateReferralCode = (referrer, campaignName) => {
   const hash = crypto.createHash('sha256');
@@ -211,374 +246,355 @@ exports.validateReferralCode = async (req, res) => {
 exports.refereeAction = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
+  
     try {
-        const { application, referee, referralId, action, transaction, debitOrCredit, amount, currency } = req.body;
-        console.log('Received refereeAction request:', req.body);
-
-        // Validate input
-        if (!application || !referee || !referralId || !action) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Application, referee, referralId, and action are required.',
-                    errCode: '19181',
-                    msgAPI: 'Missing required fields.',
-                },
-            });
-        }
-
-        // Fetch referral document with session
-        const referral = await Referral.findOne(
-            { referral_code: referralId },
-            null,
-            { session }
-        ).exec();
-
-        if (!referral) {
-            await session.abortTransaction();
-            return res.status(404).json({
-                res: false,
-                responseError: {
-                    msg: 'Referral code does not exist.',
-                    errCode: '19182',
-                    msgAPI: 'Invalid referral code.',
-                },
-            });
-        }
-
-        // Fetch associated campaign (not part of the session on purpose, but it’s okay to do so as needed)
-        const campaign = await Campaign.findById(referral.campaign_id).exec();
-        if (!campaign) {
-            await session.abortTransaction();
-            return res.status(404).json({
-                res: false,
-                responseError: {
-                    msg: 'Associated campaign does not exist.',
-                    errCode: '19183',
-                    msgAPI: 'Invalid campaign.',
-                },
-            });
-        }
-
-        // Find or initialize referee
-        let refereeIndex = referral.referees.findIndex(r => r.referee_phone === referee);
-        if (refereeIndex === -1) {
-            refereeIndex = referral.referees.length;
-            referral.referees.push({
-                referee_phone: referee,
-                status: false, // Default status
-                actions: [],
-                rewards: {
-                    onBoarding: false,
-                    transaction: false,
-                    transactionsCount: 0, // Track how many valid transactions this referee has made
-                },
-            });
-        }
-
-        const refereeData = referral.referees[refereeIndex];
-
-        // =============== HANDLE ONBOARDING ACTION ===============
-        if (action === 'onBoarding') {
-            if (refereeData.rewards.onBoarding) {
-                await session.abortTransaction();
-                return res.status(409).json({
-                    res: false,
-                    responseError: {
-                        msg: 'Onboarding already registered.',
-                        errCode: '19192',
-                        msgAPI: 'Duplicate onboarding reward claim.',
-                    },
-                });
-            }
-
-            refereeData.actions.push({ type: action, date: new Date() });
-            refereeData.rewards.onBoarding = true;
-
-            await referral.save({ session });
-            await session.commitTransaction();
-
-            return res.status(200).json({
-                res: true,
-                response: {
-                    msg: 'Onboarding action logged successfully.',
-                },
-            });
-        }
-
-        // =============== HANDLE TRANSACTION ACTION ===============
-        if (action === 'transaction') {
-            const criteria = campaign.reward_criteria.transaction;
-
-            // If the campaign does not have transaction criteria, abort
-            if (!criteria) {
-                // Possibly the campaign only has onBoarding criteria
-                refereeData.actions.push({
-                    type: action,
-                    details: { transaction, amount, currency },
-                    date: new Date(),
-                });
-                await referral.save({ session });
-                await session.commitTransaction();
-
-                return res.status(200).json({
-                    res: true,
-                    response: {
-                        msg: 'Transaction logged, but this campaign has no transaction reward criteria.',
-                    },
-                });
-            }
-
-            const { minAmount, reward, currency: campaignCurrency, transaction_type, debitOrCredit: campaignDebitOrCredit, count } = criteria;
-
-            // ========== DYNAMIC VALIDATION ==========
-            // We only check a field if it exists in the criteria.
-            // For example, if 'transaction_type' is undefined in the campaign,
-            // we do NOT fail the validation for that reason.
-
-            let isValid = true;
-            // 1. Minimum amount
-            if (typeof minAmount === 'number' && amount < minAmount) {
-                isValid = false;
-            }
-            // 2. Currency
-            if (campaignCurrency && campaignCurrency !== currency) {
-                isValid = false;
-            }
-            // 3. Transaction type (e.g. 'CASH_OUT', 'TRANSFER', etc.)
-            if (transaction_type && transaction_type !== transaction) {
-                isValid = false;
-            }
-            // 4. Debit/Credit
-            if (campaignDebitOrCredit && campaignDebitOrCredit !== debitOrCredit) {
-                isValid = false;
-            }
-
-            // Log the transaction attempt
-            refereeData.actions.push({
-                type: action,
-                details: { transaction, amount, currency },
-                date: new Date(),
-            });
-
-            if (!isValid) {
-                // This transaction does not meet reward criteria
-                refereeData.status = false;
-                await referral.save({ session });
-                await session.commitTransaction();
-
-                return res.status(200).json({
-                    res: true,
-                    response: {
-                        msg: 'Transaction action logged. No reward dispatched.',
-                    },
-                });
-            }
-
-            // ========== VALID TRANSACTION ==========
-
-            // Increment the number of valid transactions for this referee
-            if (typeof refereeData.rewards.transactionsCount !== 'number') {
-                refereeData.rewards.transactionsCount = 0;
-            }
-            refereeData.rewards.transactionsCount += 1;
-
-            // Check if the referee now meets the required count
-            if (refereeData.rewards.transactionsCount >= count) {
-                // Mark the referee's transaction as rewarded
-                refereeData.status = true;
-                refereeData.rewards.transaction = true;
-            } else {
-                // Still hasn't reached required count, so mark status as false
-                refereeData.status = false;
-                refereeData.rewards.transaction = false;
-            }
-
-            // Recount how many referees have 'status = true'
-            const validRefereesCount = referral.referees.filter(r => r.status).length;
-            referral.total_rewards = validRefereesCount;
-
-            // Only dispatch reward if:
-            //    (1) The referee indeed meets transaction count (status = true),
-            //    (2) The total referees who meet criteria = min_referees
-            if (refereeData.status && validRefereesCount === campaign.min_referees) {
-                try {
-                    await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
-                        application,
-                        referrer: referral.referrer_phone,
-                        amount: reward,      // from campaign criteria
-                        currency,
-                        referralId,
-                    });
-                    console.log('Reward dispatched to referrer.');
-                } catch (dispatchError) {
-                    console.error('Error dispatching reward:', dispatchError);
-                    // NOTE: If you do not want to rollback the transaction
-                    // because the external call failed, you can just log
-                    // and continue. Otherwise, you can `throw` to abort.
-                    // For now, let's just log it and proceed.
-                }
-            }
-
-            await referral.save({ session });
-            await session.commitTransaction();
-
-            return res.status(200).json({
-                res: true,
-                response: {
-                    msg: 'Transaction processed. Reward dispatched if eligible.',
-                },
-            });
-        }
-
-        // =============== INVALID ACTION ===============
-        await session.abortTransaction();
+      const {
+        application,
+        referee,
+        referralId,
+        action,
+        transaction,    // e.g. 'P2P', 'CASH_IN'
+        debitOrCredit,  // 'debit' or 'credit'
+        amount,         // numeric
+        currency,       // e.g. 'USD', 'LBP'
+      } = req.body;
+  
+      console.log('Received refereeAction request:', req.body);
+  
+      // 1) Basic validation
+      if (!application || !referee || !referralId || !action) {
         return res.status(400).json({
-            res: false,
-            responseError: {
-                msg: 'Invalid action type.',
-                errCode: '19195',
-                msgAPI: 'Action type is not supported.',
-            },
+          res: false,
+          responseError: {
+            msg: 'application, referee, referralId, and action are required.',
+            errCode: '19181',
+            msgAPI: 'Missing required fields.',
+          },
         });
-
-    } catch (error) {
+      }
+  
+      // 2) Fetch the referral
+      const referral = await Referral.findOne(
+        { referral_code: referralId },
+        null,
+        { session }
+      );
+      if (!referral) {
         await session.abortTransaction();
-        console.error('Error processing referee action:', error);
-        return res.status(500).json({
-            res: false,
-            responseError: {
-                msg: 'System Error.',
-                errCode: '19196',
-                msgAPI: 'Failed to process referee action.',
-            },
+        return res.status(404).json({
+          res: false,
+          responseError: {
+            msg: 'Referral code does not exist.',
+            errCode: '19182',
+            msgAPI: 'Invalid referral code.',
+          },
         });
-    } finally {
-        session.endSession();
-    }
-};
+      }
+  
+      // 3) Fetch the associated campaign
+      const campaign = await Campaign.findOne({ _id: referral.campaign_id }).exec();
 
-
-
-exports.getRefereesStatus = async (req, res) => {
-    try {
-        const { application, referrer, referralId } = req.body;
-
-        // Validate input
-        if (!application || !referrer || !referralId) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Application, referrer, and referralId are required.',
-                    errCode: '19181',
-                    msgAPI: 'Missing required fields.',
-                },
-            });
+  
+      if (!campaign) {
+        await session.abortTransaction();
+        return res.status(404).json({
+          res: false,
+          responseError: {
+            msg: 'Associated campaign does not exist.',
+            errCode: '19183',
+            msgAPI: 'Invalid campaign.',
+          },
+        });
+      }
+  
+      // 4) Find or create the referee in this referral
+      let refereeIndex = referral.referees.findIndex(
+        (r) => r.referee_phone === referee
+      );
+      if (refereeIndex === -1) {
+        refereeIndex = referral.referees.length;
+        referral.referees.push({
+          referee_phone: referee,
+          status: false,
+          actions: [],
+          rewards: {
+            onBoarding: false,
+            transaction_flow: false,
+            transaction_count: 0,
+            transaction_type: false,
+          },
+        });
+      }
+      const refereeData = referral.referees[refereeIndex];
+  
+      // Always log the incoming action for audit
+      refereeData.actions.push({
+        type: action,
+        details: { transaction, amount, currency, debitOrCredit },
+        date: new Date(),
+      });
+  
+      // 5) If the action is ONBOARDING
+      if (action === 'onBoarding') {
+        if (campaign.reward_criteria.onBoarding) {
+          // If they've already done onBoarding, you can either ignore or handle conflict
+          if (!refereeData.rewards.onBoarding) {
+            // Mark onBoarding as complete
+            refereeData.rewards.onBoarding = true;
+          }
         }
-
-        // Fetch multivalues to validate the application
-        const multivalues = await fetchMultivalues();
-        const validApplications = multivalues.response.application.values.map(item => item.id);
-
-        if (!validApplications.includes(application)) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Invalid application.',
-                    errCode: '19186',
-                    msgAPI: `Supported applications: ${validApplications.join(', ')}.`,
-                },
-            });
+        // If the campaign doesn't require onBoarding, we just log it
+      }
+  
+      // 6) If the action is TRANSACTION
+      if (action === 'transaction') {
+        const { transaction_flow, transaction: transactionCriteria } =
+          campaign.reward_criteria || {};
+  
+        // 6A) transaction_flow
+        if (transaction_flow && transaction_flow.debitOrCredit) {
+          const requiredDebitOrCredit = transaction_flow.debitOrCredit;
+          const requiredMinAmount = transaction_flow.min_amount || 0;
+  
+          const matchesDebitOrCredit =
+            !requiredDebitOrCredit || debitOrCredit === requiredDebitOrCredit;
+          const meetsMinAmount =
+            typeof requiredMinAmount === 'number' ? amount >= requiredMinAmount : true;
+  
+          if (matchesDebitOrCredit && meetsMinAmount) {
+            refereeData.rewards.transaction_flow = true;
+          }
         }
-
-        // Fetch referral document
-        const referral = await Referral.findOne({ referral_code: referralId, referrer_phone: referrer });
-
-        if (!referral) {
-            return res.status(404).json({
-                res: false,
-                responseError: {
-                    msg: 'Cannot get status for referral code...',
-                    errCode: '19182',
-                    msgAPI: 'Invalid referral code or referrer.',
-                },
-            });
-        }
-
-        // Compute referees status
-        const refereesStatus = referral.referees.map(referee => {
-            const onboardingReward = referee.rewards?.onBoarding || false;
-            const transactionReward = referee.rewards?.transaction || false;
-
-            let status = null;
-            if (onboardingReward && transactionReward) {
-                status = true;
-            } else if (onboardingReward) {
-                status = false;
-            } else if (transactionReward) {
-                status = true;
+  
+        // 6B) transaction (typed transactions + min_count)
+        if (
+          transactionCriteria &&
+          Array.isArray(transactionCriteria.transaction_type)
+        ) {
+          // If transaction_type is empty, it means there's no actual transaction requirement
+          if (transactionCriteria.transaction_type.length > 0) {
+            // We do have transaction type criteria to check
+            const validTypes = transactionCriteria.transaction_type; // e.g. ['P2P','CASH_IN']
+            const minCount = transactionCriteria.min_count || 1;
+  
+            // If this transaction is in the valid list, increment the user's count
+            if (validTypes.includes(transaction)) {
+              refereeData.rewards.transaction_count += 1;
             }
-
-            return { [referee.referee_phone]: status };
-        });
-
-        // Return response
-        return res.status(200).json({
-            res: true,
-            response: {
-                refereesStatus,
-            },
-        });
+  
+            // Check if we meet or exceed the required count
+            if (refereeData.rewards.transaction_count >= minCount) {
+              refereeData.rewards.transaction_type = true;
+            }
+          } else {
+            // transaction_type is empty => no typed transaction requirement
+            // => we skip setting transaction_type to true
+            // or you could automatically set it to true, depending on your logic.
+          }
+        }
+      }
+  
+      // 7) Re-check overall status
+      const wasQualifiedBefore = refereeData.status;
+      refereeData.status = checkRefereeEligibility(campaign, refereeData);
+  
+      // 8) Count how many referees have status = true
+      const validRefereesCount = referral.referees.filter((r) => r.status).length;
+      referral.total_rewards = validRefereesCount;
+  
+      // 9) Dispatch reward if:
+      //    - This referee just qualified (false -> true)
+      //    - validRefereesCount >= campaign.min_referees
+      if (!wasQualifiedBefore && refereeData.status) {
+        if (validRefereesCount === campaign.min_referees) {
+          const rewardAmount = campaign.reward_criteria.reward_amount;
+          const rewardCurrency = campaign.reward_criteria.currency;
+  
+          try {
+            await axios.post(`${process.env.JUNO_URL}/juno/callbacks/referrals/reward`, {
+              application,
+              referrer: referral.referrer_phone,
+              amount: rewardAmount,
+              currency: rewardCurrency,
+              referralId,
+            });
+            console.log(
+              `Reward dispatched to ${referral.referrer_phone}: ${rewardAmount} ${rewardCurrency}.`
+            );
+          } catch (err) {
+            console.error('Error dispatching reward:', err.message);
+            // Decide if you want to rollback or just log the failure
+          }
+        }
+      }
+  
+      // 10) Save & finalize
+      await referral.save({ session });
+      await session.commitTransaction();
+  
+      return res.status(200).json({
+        res: true,
+        response: {
+          msg: 'Referee action processed successfully.',
+          currentQualifiedReferees: validRefereesCount,
+        },
+      });
     } catch (error) {
-        console.error('Error fetching referees status:', error.message);
-        return res.status(500).json({
-            res: false,
-            responseError: {
-                msg: 'System Error...',
-                errCode: '19184',
-                msgAPI: 'Cannot retrieve referee statuses.',
-            },
-        });
+      await session.abortTransaction();
+      console.error('Error processing referee action:', error);
+      return res.status(500).json({
+        res: false,
+        responseError: {
+          msg: 'System Error.',
+          errCode: '19196',
+          msgAPI: 'Failed to process referee action.',
+        },
+      });
+    } finally {
+      session.endSession();
     }
-};
+  };
 
-exports.getReferrals = async (req, res) => {
+  exports.getRefereesStatus = async (req, res) => {
     try {
-        // Fetch all referral documents
-        const referrals = await Referral.find({}).populate('campaign_id');
-
-        // Process each referral document
-        const result = referrals.map(referral => {
-            return {
-                referrer_phone: referral.referrer_phone,
-                campaigns: [
-                    {
-                        campaignId: referral.campaign_id._id,
-                        campaignName: referral.campaign_id.name,
-                        description: referral.campaign_id.description,
-                        referees: referral.referees.map(referee => ({
-                            referralId: referral.referral_id,
-                            referee_phone: referee.referee_phone,
-                            date: referee.actions.length > 0 ? referee.actions[0].date : null, // Get the date of the first action
-                            status: referral.total_rewards >= referral.campaign_id.min_referees,
-                        })),
-                    },
-                ],
-            };
+      const { application, referrer, referralId } = req.body;
+  
+      // 1) Basic validation
+      if (!application || !referrer || !referralId) {
+        return res.status(400).json({
+          res: false,
+          responseError: {
+            msg: 'Application, referrer, and referralId are required.',
+            errCode: '19181',
+            msgAPI: 'Missing required fields.',
+          },
         });
-
-        // Return the response
-        res.status(200).json({ referrals: result });
+      }
+  
+      // 2) Fetch valid applications from multivalues
+      const multivalues = await fetchMultivalues();
+      const validApplications =
+        multivalues?.response?.application?.values?.map((item) => item.id) || [];
+  
+      if (!validApplications.includes(application)) {
+        return res.status(400).json({
+          res: false,
+          responseError: {
+            msg: 'Invalid application.',
+            errCode: '19186',
+            msgAPI: `Supported applications: ${validApplications.join(', ')}.`,
+          },
+        });
+      }
+  
+      // 3) Fetch the referral document
+      const referral = await Referral.findOne({
+        referral_code: referralId,
+        referrer_phone: referrer,
+      });
+  
+      if (!referral) {
+        return res.status(404).json({
+          res: false,
+          responseError: {
+            msg: 'Cannot get status for referral code or referrer.',
+            errCode: '19182',
+            msgAPI: 'Invalid referral code or referrer.',
+          },
+        });
+      }
+  
+      // 4) Format the refereesStatus array
+      //    Must be in the form: [{ "+32123": true/false }, { "+98765": true/false }, ...]
+      const refereesStatus = referral.referees.map((referee) => {
+        return { [referee.referee_phone]: referee.status };
+      });
+  
+      // 5) Return the required response shape
+      return res.status(200).json({
+        res: true,
+        response: {
+          refereesStatus,
+        },
+      });
     } catch (error) {
-        console.error('Error fetching referrals:', error);
-        res.status(500).json({
-            res: false,
-            responseError: {
-                msg: 'Failed to fetch referrals.',
-                errCode: '19200',
-                msgAPI: 'System error while fetching referrals.',
-            },
-        });
+      console.error('Error fetching referees status:', error.message);
+      return res.status(500).json({
+        res: false,
+        responseError: {
+          msg: 'System Error...',
+          errCode: '19184',
+          msgAPI: 'Cannot retrieve referee statuses.',
+        },
+      });
     }
-};
+  };
+
+  exports.getReferrals = async (req, res) => {
+    try {
+      // 1) Fetch all referrals, populating the 'campaign_id' reference
+      const referrals = await Referral.find({}).populate('campaign_id');
+  
+      // 2) Process each referral
+      const result = referrals.map((referral) => {
+        // Basic campaign details
+        const campaignDoc = referral.campaign_id || {};
+        const {
+          _id: campaignDbId,
+          campaign_id: campaignUuid,  // The 'campaign_id' field from Campaign schema
+          name: campaignName,
+          start_date,
+          end_date,
+          min_referees,
+          reward_criteria,
+          status: campaignStatus,
+        } = campaignDoc;
+  
+        // Map referees
+        const refereesInfo = referral.referees.map((ref) => ({
+          referralId: referral.referral_id,
+          referee_phone: ref.referee_phone,
+          // Date of the first action, if any
+          date: ref.actions?.[0]?.date || null,
+          // Each referee in your schema has its own .status
+          qualified: ref.status,
+        }));
+  
+        // If you want an overall "campaignComplete" flag (whether the campaign's threshold is met or passed):
+        const campaignComplete = referral.total_rewards >= (min_referees || 0);
+  
+        return {
+          referrer_phone: referral.referrer_phone,
+          campaigns: [
+            {
+              campaignDbId,       // MongoDB _id
+              campaignId: campaignUuid, // The custom 'campaign_id' from the schema
+              campaignName,
+              start_date,
+              end_date,
+              min_referees,
+              status: campaignStatus,
+              reward_criteria,
+              referees: refereesInfo,
+              totalQualifiedReferees: referral.total_rewards,
+              campaignComplete, // True if total_rewards >= min_referees
+            },
+          ],
+        };
+      });
+  
+      // 3) Send the response
+      return res.status(200).json({ referrals: result });
+    } catch (error) {
+      console.error('Error fetching referrals:', error);
+      return res.status(500).json({
+        res: false,
+        responseError: {
+          msg: 'Failed to fetch referrals.',
+          errCode: '19200',
+          msgAPI: 'System error while fetching referrals.',
+        },
+      });
+    }
+  };
+  

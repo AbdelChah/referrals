@@ -10,6 +10,196 @@
 			"name": "Pamela",
 			"item": [
 				{
+					"name": "CreateCampaign",
+					"item": [
+						{
+							"name": "Create Campaign: Ekyc (Onboarding) Only",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"eKYC Only Campaign\",\r\n  \"start_date\": \"2024-04-01T00:00:00.000Z\",\r\n  \"end_date\": \"2024-06-01T23:59:59.000Z\",\r\n  \"min_referees\": 5,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 50,\r\n    \"currency\": \"LBP\",\r\n    \"onBoarding\": true\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/campaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Campaign: Transaction Flow Only",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Transaction Flow Only\",\r\n  \"start_date\": \"2024-02-10T00:00:00.000Z\",\r\n  \"end_date\": \"2024-03-10T23:59:59.000Z\",\r\n  \"min_referees\": 1,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 25,\r\n    \"currency\": \"USD\",\r\n    \"transaction_flow\": {\r\n      \"debitOrCredit\": \"debit\",\r\n      \"min_amount\": 100\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/campaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Campaign: Transaction Type Only",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Transaction Type Only\",\r\n  \"start_date\": \"2024-05-01T00:00:00.000Z\",\r\n  \"end_date\": \"2024-05-31T23:59:59.000Z\",\r\n  \"min_referees\": 3,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 75,\r\n    \"currency\": \"USD\",\r\n    \"transaction\": {\r\n      \"transaction_type\": [\r\n        \"P2P\",\r\n        \"CASH_IN\"\r\n      ],\r\n      \"min_count\": 3\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/campaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Campaign: eKYC and Transaction Flow",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Onboarding + Transaction Flow\",\r\n  \"start_date\": \"2024-07-01T00:00:00.000Z\",\r\n  \"end_date\": \"2024-08-01T23:59:59.000Z\",\r\n  \"min_referees\": 2,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 100,\r\n    \"currency\": \"LBP\",\r\n    \"onBoarding\": true,\r\n    \"transaction_flow\": {\r\n      \"debitOrCredit\": \"credit\",\r\n      \"min_amount\": 200\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/campaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Campaign: eKYC and Transaction Type",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Onboarding + Transaction Type\",\r\n  \"start_date\": \"2024-11-01T00:00:00.000Z\",\r\n  \"end_date\": \"2024-12-01T23:59:59.000Z\",\r\n  \"min_referees\": 4,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 200,\r\n    \"currency\": \"USD\",\r\n    \"onBoarding\": true,\r\n    \"transaction\": {\r\n      \"transaction_type\": [\r\n        \"CASH_IN\",\r\n        \"CARD_DEBIT_POS\"\r\n      ],\r\n      \"min_count\": 2\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/campaigns",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"campaigns"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Register Admin",
 					"request": {
 						"method": "POST",
@@ -105,7 +295,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+							"raw": "{\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTRkZDhhZjAzNGNlOWZiMGYxOTc3MiIsImlhdCI6MTczNzgwOTI5OCwiZXhwIjoxNzM4NDE0MDk4fQ.ViTS4YDexF47kNqoo9_vBOOq47rMX_DVFuUTDUoQAPo\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/refresh",
@@ -158,47 +348,6 @@
 								"api",
 								"auth",
 								"logout"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Campaign",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Holiday Promo\",\n    \"start_date\": \"2025-01-01\",\n    \"end_date\": \"2025-12-31\",\n    \"reward_criteria\": {\n        \"onBoarding\": { \"reward\": 5 },\n        \"transaction\": {\n            \"minAmount\": 10,\n            \"reward\": 10,\n            \"currency\": \"USD\",\n            \"transaction_type\" : \"CASH_IN\",\n            \"debitOrCredit\" : \"credit\"\n        }\n    },\n    \"status\": \"active\"\n}\n"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/campaigns",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"campaigns"
 							]
 						}
 					},
@@ -260,6 +409,127 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Referrals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/referrals/getReferrals",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"referrals",
+								"getReferrals"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resetPassword",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteCampaign",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/919335c8-4f65-4fdb-8e39-b86b494d2a8a",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"919335c8-4f65-4fdb-8e39-b86b494d2a8a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMetaData",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/meta",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								"meta"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "exportCSV",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/:campaignId/export",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								":campaignId",
+								"export"
+							],
+							"variable": [
+								{
+									"key": "campaignId",
+									"value": "6794e90a2f08ceeb1488982a"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -282,7 +552,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"application\": \"bobfinance\",\n    \"referrer\": \"+96103390990\",\n    \"campaignName\": \"Holiday Promo\"\n}\n"
+							"raw": "{\n    \"application\": \"bobfinance\",\n    \"referrer\": \"+96181022318\",\n    \"campaignName\": \"Holiday Promo\"\n}\n"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/apiCallbacks/juno/generateReferralCode",
@@ -361,7 +631,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"application\": \"bobfinance\",\r\n    \"referee\": \"+96171777444\",\r\n    \"referralId\": \"220F280B\",\r\n    \"action\": \"transaction\",\r\n    \"transaction\": \"CASH_IN\",\r\n    \"debitOrCredit\": \"credit\",\r\n    \"amount\": 15.5,\r\n    \"currency\": \"USD\"\r\n}\r\n",
+							"raw": "{\r\n    \"application\": \"bobfinance\",\r\n    \"referee\": \"+96171777444\",\r\n    \"referralId\": \"91E32CAB\",\r\n    \"action\": \"transaction\",\r\n    \"transaction\": \"CASH_IN\",\r\n    \"debitOrCredit\": \"credit\",\r\n    \"amount\": 3,\r\n    \"currency\": \"USD\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"

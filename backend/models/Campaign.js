@@ -1,5 +1,6 @@
-// models/Campaign.js
-
+/*******************************
+ * models/Campaign.js
+ ******************************/
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { v4: uuidv4 } = require('uuid');
@@ -27,13 +28,30 @@ const campaignSchema = new Schema({
     required: true,
   },
   reward_criteria: {
-    onBoarding: { reward: Number },
+    // The numerical reward amount for the campaign
+    reward_amount: {
+      type: Number,
+      required: true,
+    },
+    // The currency used for the reward (to be validated dynamically)
+    currency: {
+      type: String,
+      required: true,
+    },
+    // Boolean indicating if onBoarding (eKYC) is required
+    onBoarding: {
+      type: Boolean,
+      default: false,
+    },
+    // Transaction flow eligibility
+    transaction_flow: {
+      debitOrCredit: String, // validated dynamically
+      min_amount: Number,    // validated if provided
+    },
+    // Transaction-type eligibility
     transaction: {
-      minAmount: Number,
-      reward: Number,
-      currency: String,
-      transaction_type: String,
-      debitOrCredit: String, // Field to specify debit or credit
+      transaction_type: [String], // validated dynamically
+      min_count: Number,
     },
   },
   status: {
