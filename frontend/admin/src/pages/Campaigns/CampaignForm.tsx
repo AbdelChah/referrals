@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -23,16 +23,40 @@ import {
 } from "./CampaignForm.styles";
 import { mapEligibilityCriteriaToApi } from "../../utils/mapEligibilityCriteriaToApi";
 import { toast } from "react-toastify";
+import { fetchMultiValues } from "../../services/multiValueService";
+
+interface TransactionType {
+  id: string;
+  en: string;
+  ar: string;
+}
 
 const CampaignForm: React.FC = () => {
   const location = useLocation();
   const { campaign } = location.state || {};
-
+  const application = import.meta.env.VITE_APPLICATION || "bobfinance";
   const [criteriaList, setCriteriaList] = useState<EligibilityCriteria[]>(
     campaign ? campaign.eligibilityCriteria : []
   );
+  const [transactionTypes, setTransactionTypes] = useState<TransactionType[]>(
+    []
+  );
 
   const navigate = useNavigate();
+  useEffect(() => {
+    const fetchTransactionTypes = async () => {
+      try {
+        const response = await fetchMultiValues(application);
+        if (response) {
+          setTransactionTypes(response.transaction.values);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchTransactionTypes();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -135,29 +159,34 @@ const CampaignForm: React.FC = () => {
           reward_criteria: mapEligibilityCriteriaToApi(
             criteriaList,
             values.rewardAmount,
-            values.rewardCurrency
+            values.rewardCurrency,
+            values.rewardType
           ),
           min_referees: values.minReferees,
-          status: "active", // Hardcoded for now; you can make this dynamic if needed
+          reward_type: values.rewardType, // Explicitly add reward type
+          status: "active", // Adjust if the API expects dynamic statuses
         };
+        
         const response = await createCampaign(formData);
-
+    
         if (!response.res) {
           toast.error(
-            "Campaign crecreateCampaignation failed:",
+            "Campaign creation failed:",
             response.responseError.msg
           );
           return;
         }
+    
         toast.success("Campaign created successfully");
         formik.resetForm();
         setCriteriaList([]);
         navigate("/campaigns");
       } catch (error) {
-        // Catch any unexpected error
+        console.error(error);
         toast.error(`An error occurred while creating the campaign: ${error}`);
       }
     },
+    
   });
 
   const handleCriteriaChange = (
@@ -183,12 +212,11 @@ const CampaignForm: React.FC = () => {
       { name: "eKYC", eligible: true },
     ];
     setCriteriaList(newCriteriaList);
-    formik.setFieldValue("eligibilityCriteria", JSON.stringify(newCriteriaList)); // Update eligibilityCriteria field in Formik
+    formik.setFieldValue(
+      "eligibilityCriteria",
+      JSON.stringify(newCriteriaList)
+    ); // Update eligibilityCriteria field in Formik
   };
-
-  // const handleAddCriteria = () => {
-  //   setCriteriaList([...criteriaList, { name: "eKYC", eligible: true }]); // Default to eKYC
-  // };
 
   const handleRemoveCriteria = (index: number) => {
     const updatedCriteriaList = criteriaList.filter((_, i) => i !== index);
@@ -360,8 +388,8 @@ const CampaignForm: React.FC = () => {
                     >
                       <option value="eKYC">eKYC</option>
                       <option value="Transaction">Transaction</option>
-                      <option value="TransactionFlow">Transaction Flow</option>
-                    </SelectField>
+                        <option value="TransactionFlow">Transaction Flow                        </option>
+                                          </SelectField>
                   </div>
 
                   {/* Conditional rendering based on the selected type */}
@@ -401,11 +429,11 @@ const CampaignForm: React.FC = () => {
                             })
                           }
                         >
-                          <option value="P2P">P2P</option>
-                          <option value="QR Code">QR Code</option>
-                          <option value="Cards">Cards</option>
-                          <option value="POS">POS</option>
-                          <option value="CASH_IN">CASH IN</option>
+                         {transactionTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.en}
+                        </option>
+                      ))}
                         </SelectField>
                       </div>
 
@@ -417,11 +445,11 @@ const CampaignForm: React.FC = () => {
                           id={`transactionCount-${index}`}
                           name={`transactionCount-${index}`}
                           type="number"
-                          value={criteria.transaction?.count || ""}
+                          value={criteria.transaction?.minCount || ""}
                           onChange={(e: { target: { value: string } }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
-                              count: e.target.value
+                              minCount: e.target.value
                                 ? parseInt(e.target.value, 10)
                                 : 0,
                             })
@@ -438,7 +466,7 @@ const CampaignForm: React.FC = () => {
                         <SelectField
                           id={`transactionFlow-${index}`}
                           name={`transactionFlow-${index}`}
-                          value={criteria.transactionFlow?.flow || "Debit"}
+                          value={criteria.transactionFlow?.debitOrCredit || "Debit"}
                           onChange={(e: { target: { value: any } }) =>
                             handleCriteriaChange(index, "name", {
                               ...criteria.transactionFlow,
@@ -459,11 +487,11 @@ const CampaignForm: React.FC = () => {
                           id={`transactionAmount-${index}`}
                           name={`transactionAmount-${index}`}
                           type="number"
-                          value={criteria.transactionFlow?.amount || ""}
+                          value={criteria.transactionFlow?.minAmount || ""}
                           onChange={(e: { target: { value: string } }) =>
                             handleCriteriaChange(index, "transactionFlow", {
                               ...criteria.transactionFlow,
-                              amount: e.target.value
+                              minAmount: e.target.value
                                 ? parseInt(e.target.value, 10)
                                 : 0,
                             })

@@ -20,8 +20,11 @@ const CampaignDetailsModal: React.FC<CampaignModalProps> = ({
   campaign,
   onClose,
 }) => {
-  const capitalize = (text: string): string =>
-    text.charAt(0).toUpperCase() + text.slice(1);
+  console.log({ campaign });
+
+  const capitalize = (text: string): string => {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
 
   return (
     <Modal
@@ -48,9 +51,7 @@ const CampaignDetailsModal: React.FC<CampaignModalProps> = ({
             <DetailsItem>
               <strong>End Date:</strong> {formatDate(campaign.endDate)}
             </DetailsItem>
-            <DetailsItem>
-              <strong>Reward Type:</strong> {campaign.rewardType}
-            </DetailsItem>
+
             <DetailsItem>
               <strong>Reward Amount:</strong> {campaign.rewardAmount}{" "}
               {campaign.rewardCurrency}
@@ -64,19 +65,33 @@ const CampaignDetailsModal: React.FC<CampaignModalProps> = ({
             <DetailsItem>
               <strong>Eligibility Criteria:</strong>
               <ul>
-                {campaign.eligibilityCriteria.map((criterion, index) => (
+                {/* Iterate over eligibilityCriteria */}
+                {campaign.eligibilityCriteria.map((criteria, index) => (
                   <li key={index}>
-                    {criterion.name === "eKYC" && `eKYC: ${criterion.eligible}`}
-                    {criterion.name === "Transaction" &&
-                      criterion.transaction?.type &&
-                      `Transaction: ${capitalize(
-                        criterion.transaction?.type
-                      )} with count ${criterion.transaction?.count}`}
-                    {criterion.name === "TransactionFlow" &&
-                      criterion.transactionFlow?.flow &&
-                      `TransactionFlow: ${capitalize(
-                        criterion.transactionFlow?.flow
-                      )} of ${criterion.transactionFlow?.amount}`}
+                    <strong>{criteria.name}:</strong>{" "}
+                    {criteria.name === "Transaction" && criteria.transaction ? (
+                      <>
+                        {Array.isArray(criteria.transaction.transactionType)
+                          ? criteria.transaction.transactionType.join(", ")
+                          : criteria.transaction.transactionType}{" "}
+                        {""}
+                        {criteria.transaction.minCount && (
+                          <>(Minimum Count: {criteria.transaction.minCount})</>
+                        )}
+                      </>
+                    ) : null}
+                    {criteria.name === "TransactionFlow" &&
+                    criteria.transactionFlow ? (
+                      <>
+                        {capitalize(criteria.transactionFlow.debitOrCredit)}{" "}
+                        with a minimum amount of{" "}
+                        {criteria.transactionFlow.minAmount}
+                      </>
+                    ) : null}
+                    {criteria.name === "Onboarding" &&
+                    criteria.onBoarding !== undefined ? (
+                      <>{criteria.onBoarding ? "Yes" : "No"}</>
+                    ) : null}
                   </li>
                 ))}
               </ul>

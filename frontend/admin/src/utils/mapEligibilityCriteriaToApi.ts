@@ -3,48 +3,52 @@ import { EligibilityCriteria } from "../Models/Campaign";
 export const mapEligibilityCriteriaToApi = (
   criteriaList: EligibilityCriteria[],
   rewardAmount: number,
-  rewardCurrency: string
+  rewardCurrency: string,
+  rewardType: string
 ) => {
   const rewardCriteria: any = {
-    onBoarding: {},
-    transaction: {},
+    onBoarding: false,
+    reward_amount: rewardAmount,
+    currency: rewardCurrency,
   };
+
   // Loop through the eligibility criteria and map them correctly
   criteriaList.forEach((criteria) => {
-    if (criteria.name === "eKYC" && criteria.eligible == true) {
-      rewardCriteria.onBoarding = { reward: rewardAmount }; // to be 0 for now.
+    // Scenario 1, 4, 5: eKYC-based reward (Onboarding)
+    if (criteria.name === "eKYC" && criteria.eligible === true) {
+      rewardCriteria.onBoarding = true;
+      rewardCriteria.reward_amount = rewardAmount;
+      rewardCriteria.currency = rewardCurrency;
     }
-
+    // Scenario 3, 5: Transaction Type (count-based reward)
     if (criteria.name === "Transaction" && criteria.transaction) {
+      console.log({criteria})
       rewardCriteria.transaction = {
-        reward: rewardAmount, // Example reward
-        currency: "USD", // Default currency
-        transaction_type: criteria.transaction?.type || "CASH_IN",
-        count: criteria.transaction?.count // Default transaction type
+        reward_type: rewardType,
+        transaction_type: criteria.transaction.transactionType || ["CASH_IN"], // Default to ["CASH_IN"] if no transactionType
+        min_count: criteria.transaction.minCount || 1, // Default to 1 if minCount is missing
       };
     }
-
+    // Scenario 2, 4: Transaction Flow (amount and flow-based reward)
     if (criteria.name === "TransactionFlow" && criteria.transactionFlow) {
-      rewardCriteria.transaction = {
-        ...rewardCriteria.transaction,
-        minAmount: criteria.transactionFlow.amount || 10, // Default amount if not provided
-        reward: rewardAmount,
-        currency: rewardCurrency || "USD",
-        debitOrCredit:
-          criteria.transactionFlow.flow === "Credit" ? "credit" : "debit",
+      // Ensure the existing 'transaction' object is properly merged, not overwritten
+      rewardCriteria.transaction_flow = {
+        ...rewardCriteria.transaction, // Keep existing transaction properties
+        min_amount: criteria.transactionFlow.minAmount || 10, // Default to 10 if minAmount is missing
+        debitOrCredit: criteria.transactionFlow.debitOrCredit || "credit", // Default to "credit" if missing
       };
     }
   });
 
-// Check if the 'onBoarding' object is either undefined or empty
-if (rewardCriteria.onBoarding === undefined || Object.keys(rewardCriteria.onBoarding).length === 0) {
-  delete rewardCriteria.onBoarding;
-}
+  // Check if the 'onBoarding' object is either undefined or false
+  if (rewardCriteria.onBoarding === undefined || rewardCriteria.onBoarding === false) {
+    delete rewardCriteria.onBoarding;
+  }
 
-// Check if the 'transaction' object is either undefined or empty
-if (rewardCriteria.transaction === undefined || Object.keys(rewardCriteria.transaction).length === 0) {
-  delete rewardCriteria.transaction;
-}
+  // Check if the 'transaction' object is either undefined or empty
+  if (!rewardCriteria.transaction || Object.keys(rewardCriteria.transaction).length === 0) {
+    delete rewardCriteria.transaction;
+  }
 
   return rewardCriteria;
 };

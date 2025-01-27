@@ -98,19 +98,35 @@ const CampaignList: React.FC = () => {
                 <TableCell>{campaign.campaignName}</TableCell>
                 <TableCell>{formatDate(campaign.startDate)}</TableCell>
                 <TableCell>{formatDate(campaign.endDate)}</TableCell>
-                <TableCell>{campaign.rewardType}</TableCell>
+                <TableCell>
+                  {Array.isArray(campaign.rewardType)
+                    ? campaign.rewardType.join(", ")
+                    : campaign.rewardType}
+                </TableCell>
                 <TableCell>
                   <ul>
-                    {campaign.eligibilityCriteria.map((criterion, index) => (
-                      <li key={index}>
-                        {criterion.name === "eKYC" &&
-                          `eKYC: ${criterion.eligible}`}
-                        {criterion.name === "Transaction" && criterion.transaction?.type &&
-                          `Transaction: ${criterion.transaction.type} with count ${criterion.transaction.count}`}
-                        {criterion.name === "TransactionFlow" && criterion.transactionFlow?.flow &&
-                          `TransactionFlow: ${criterion.transactionFlow.flow} of ${criterion.transactionFlow.amount}`}
-                      </li>
-                    ))}
+                    {campaign.eligibilityCriteria.length > 0 ? (
+                      campaign.eligibilityCriteria.map((criterion, index) => (
+                        <li key={index}>
+                          {criterion.name === "Onboarding"
+                            ? `Onboarding: ${criterion.onBoarding ? "Yes" : "No"}`
+                            : null}
+                          {criterion.name === "Transaction" &&
+                          criterion.transaction?.transactionType
+                            ? `Transaction: ${criterion.transaction.transactionType.join(
+                                ", "
+                              )} with count ${criterion.transaction.minCount}`
+                            : null}
+
+                          {criterion.name === "TransactionFlow" &&
+                          criterion.transactionFlow?.debitOrCredit
+                            ? `TransactionFlow: ${criterion.transactionFlow.debitOrCredit} of ${criterion.transactionFlow.minAmount}`
+                            : null}
+                        </li>
+                      ))
+                    ) : (
+                      <li>No eligibility criteria available</li>
+                    )}
                   </ul>
                 </TableCell>
               </TableRow>

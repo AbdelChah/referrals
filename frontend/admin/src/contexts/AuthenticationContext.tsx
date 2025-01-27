@@ -24,7 +24,6 @@ interface AuthenticationContextProps {
   ) => Promise<void>;
   validateOtp: (otp: string) => Promise<void>;
   logout: () => void;
-  refreshAuthToken: () => Promise<void>;
 }
 
 export const AuthenticationContext = createContext<
@@ -47,28 +46,24 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
   // Perform the authentication check only once on component mount
   useEffect(() => {
     const initializeAuth = async () => {
-      if (refreshing) return; // Avoid refreshing if already in progress
-  
       const accessToken = getAccessToken();
       const refreshToken = getRefreshToken();
   
+      // Only check authentication if access token or refresh token exists
       if (accessToken && refreshToken) {
-        try {
-          await refreshAuthToken(); // Try refreshing the token
-          setIsAuthenticated(true); // Ensure user is authenticated
-        } catch (error) {
-          console.error("Error during token validation:", error);
-          logout();
-        }
+        setIsAuthenticated(true); // Ensure user is authenticated
+      } else {
+        logout(); // Log out if no tokens exist
       }
+  
       setAuthChecked(true); // Mark authentication check as complete
       setLoading(false); // Stop loading
     };
   
-    if (!authChecked) {
-      initializeAuth();  // Run the authentication check once
+    if (!authChecked && !refreshing) {
+      initializeAuth(); // Run the authentication check once
     }
-  }, [authChecked, refreshing]);  // Ensure it runs only once and respects the refreshing state
+  }, [authChecked, refreshing, setLoading, setAuthChecked, setIsAuthenticated]);  // Ensure it runs only once and respects the refreshing state
   
   const login = async (
     username: string,
@@ -118,7 +113,7 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
 
   const logout = async (): Promise<void> => {
     const refreshToken = getRefreshToken();
-
+    console.log("in logout ")
     if (refreshToken) {
       try {
         const response = await logoutService(refreshToken);
@@ -181,46 +176,6 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
     }
   };
 
-  const refreshAuthToken = async (): Promise<void> => {
-    if (refreshing) return; // Prevent multiple simultaneous refresh requests
-    setRefreshing(true);
-  
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-      logout(); // Log out if no refresh token is found
-      setRefreshing(false);
-      return;
-    }
-  
-    try {
-      const response = await refreshTokenService(refreshToken);
-  
-      if (response.res && response.response?.data) {
-        const newAccessToken = response.response?.data.accessToken;
-        const newRefreshToken = response.response?.data.refreshToken;
-  
-        if (newAccessToken) {
-          saveTokens(newAccessToken, newRefreshToken || refreshToken); // Save new tokens
-          setIsAuthenticated(true); // Mark the user as authenticated
-        } else {
-          logout(); // Log out if no valid access token is returned
-        }
-      } else {
-        if (response.responseError?.errCode === "19021") {
-          // Token does not exist in the database
-          toast.error("Your session has expired. Please log in again.");
-          logout(); // Log out if refresh token is invalid
-        } else {
-          logout(); // Log out for other reasons
-        }
-      }
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      logout(); // Log out if token refresh fails
-    } finally {
-      setRefreshing(false); // Reset the refreshing state after refresh attempt
-    }
-  };
   
 
   return (
@@ -231,7 +186,6 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
         login,
         validateOtp,
         logout,
-        refreshAuthToken,
       }}
     >
       {children}
