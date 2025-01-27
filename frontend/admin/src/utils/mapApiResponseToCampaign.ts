@@ -54,7 +54,7 @@ export const mapApiResponseToCampaign = (apiResponse: any): Campaign => {
     campaignName: apiResponse.name,
     startDate: new Date(apiResponse.start_date).toISOString(),
     endDate: new Date(apiResponse.end_date).toISOString(),
-    rewardType: apiResponse.reward_criteria?.transaction?.transaction_type || apiResponse.reward_criteria?.transaction_flow?.debitOrCredit || [], // Handling both transaction_type and transaction_flow
+    rewardType: apiResponse.reward_criteria?.reward_type || "Cashback",
     rewardAmount: apiResponse.reward_criteria?.reward_amount || 0, // Default to 0 if reward_amount is missing
     rewardCurrency: apiResponse.reward_criteria?.currency || "USD", // Default to "USD" if currency is missing
     eligibilityCriteria: eligibilityCriterias,

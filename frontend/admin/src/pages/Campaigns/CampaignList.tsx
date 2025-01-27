@@ -9,7 +9,7 @@ import {
 import { Link } from "react-router-dom";
 import { Title } from "../../styles/title.styles";
 import { Campaign } from "../../Models/Campaign";
-import { fetchCampaigns } from "../../services/campaignService";
+import { fetchCampaigns, deleteCampaign } from "../../services/campaignService"; // Assuming deleteCampaign is a service function
 import CampaignModal from "./CampaignDetailsModal";
 import { TablePagination } from "@mui/material";
 import { formatDate } from "../../utils/dateUtils";
@@ -24,7 +24,6 @@ const CampaignList: React.FC = () => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Function to load campaigns (refactored to allow re-fetching after changes)
   const loadCampaigns = useCallback(async () => {
     try {
       const fetchedCampaigns = await fetchCampaigns();
@@ -48,7 +47,17 @@ const CampaignList: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCampaign(null);
-    loadCampaigns(); // Refetch campaigns when the modal is closed
+    loadCampaigns();
+  };
+
+  const handleDelete = async (campaignId: string) => {
+    try {
+      await deleteCampaign(campaignId); // Call the delete API
+      loadCampaigns(); // Refresh the campaigns after deletion
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+      alert("Failed to delete the campaign. Please try again.");
+    }
   };
 
   const paginatedCampaigns = campaigns.slice(
@@ -86,6 +95,7 @@ const CampaignList: React.FC = () => {
               <TableHeader>End Date</TableHeader>
               <TableHeader>Reward Type</TableHeader>
               <TableHeader>Eligibility Criteria</TableHeader>
+              <TableHeader>Actions</TableHeader> {/* New column for actions */}
             </TableRow>
           </thead>
           <tbody>
@@ -95,7 +105,9 @@ const CampaignList: React.FC = () => {
                 onClick={() => handleRowClick(campaign)}
                 style={{ cursor: "pointer" }}
               >
-                <TableCell>{campaign.campaignName}</TableCell>
+                <TableCell onClick={() => handleRowClick(campaign)}>
+                  {campaign.campaignName}
+                </TableCell>
                 <TableCell>{formatDate(campaign.startDate)}</TableCell>
                 <TableCell>{formatDate(campaign.endDate)}</TableCell>
                 <TableCell>
@@ -109,7 +121,9 @@ const CampaignList: React.FC = () => {
                       campaign.eligibilityCriteria.map((criterion, index) => (
                         <li key={index}>
                           {criterion.name === "Onboarding"
-                            ? `Onboarding: ${criterion.onBoarding ? "Yes" : "No"}`
+                            ? `Onboarding: ${
+                                criterion.onBoarding ? "Yes" : "No"
+                              }`
                             : null}
                           {criterion.name === "Transaction" &&
                           criterion.transaction?.transactionType
@@ -117,7 +131,6 @@ const CampaignList: React.FC = () => {
                                 ", "
                               )} with count ${criterion.transaction.minCount}`
                             : null}
-
                           {criterion.name === "TransactionFlow" &&
                           criterion.transactionFlow?.debitOrCredit
                             ? `TransactionFlow: ${criterion.transactionFlow.debitOrCredit} of ${criterion.transactionFlow.minAmount}`
@@ -128,6 +141,16 @@ const CampaignList: React.FC = () => {
                       <li>No eligibility criteria available</li>
                     )}
                   </ul>
+                </TableCell>
+                <TableCell>
+                  <StyledButton
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering row click
+                      handleDelete(campaign.id);
+                    }}
+                  >
+                    Delete
+                  </StyledButton>
                 </TableCell>
               </TableRow>
             ))}

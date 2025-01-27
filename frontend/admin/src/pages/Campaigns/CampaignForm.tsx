@@ -63,7 +63,7 @@ const CampaignForm: React.FC = () => {
       campaignName: campaign ? campaign.campaignName : "",
       fromDate: campaign ? campaign.startDate : "",
       toDate: campaign ? campaign.endDate : "",
-      rewardType: campaign ? campaign.rewardType : "cashback",
+      rewardType: campaign ? campaign.rewardType : "Cashback",
       rewardAmount: campaign ? campaign.rewardAmount : 0,
       rewardCurrency: campaign ? campaign.rewardCurrency : "USD",
       eligibilityCriteria: JSON.stringify(criteriaList),
@@ -91,7 +91,7 @@ const CampaignForm: React.FC = () => {
           "Amount is required for Cashback", // Error message
           function (value) {
             const { rewardType } = this.parent;
-            if (rewardType === "cashback" && !value) {
+            if (rewardType === "Cashback" && !value) {
               return false; // Validation fails if rewardType is "cashback" and rewardAmount is not provided
             }
             return true; // Otherwise, validation passes
@@ -104,7 +104,7 @@ const CampaignForm: React.FC = () => {
           "Currency is required for Cashback", // Error message
           function (value) {
             const { rewardType } = this.parent; // Access other fields in the schema
-            if (rewardType === "cashback" && !value) {
+            if (rewardType === "Cashback" && !value) {
               return false; // Validation fails if rewardType is "cashback" and rewardCurrency is not provided
             }
             return true; // Otherwise, validation passes
@@ -292,9 +292,9 @@ const CampaignForm: React.FC = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             >
-              <option value="cashback">Cashback</option>
-              <option value="points">Points</option>
-              <option value="vouchers">Vouchers</option>
+              <option value="Cashback">Cashback</option>
+              {/* <option value="points">Points</option>
+              <option value="vouchers">Vouchers</option> */}
             </SelectField>
             <ErrorMessage>
               {typeof formik.errors.rewardType === "string"
@@ -303,7 +303,7 @@ const CampaignForm: React.FC = () => {
             </ErrorMessage>
           </div>
 
-          {formik.values.rewardType === "cashback" && (
+          {formik.values.rewardType === "Cashback" && (
             <>
               <div>
                 <Label htmlFor="rewardAmount">Amount</Label>
