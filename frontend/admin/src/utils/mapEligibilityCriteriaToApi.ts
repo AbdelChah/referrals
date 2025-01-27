@@ -22,11 +22,11 @@ export const mapEligibilityCriteriaToApi = (
     }
     // Scenario 3, 5: Transaction Type (count-based reward)
     if (criteria.name === "Transaction" && criteria.transaction) {
-      console.log({criteria})
       rewardCriteria.transaction = {
-        reward_type: rewardType,
-        transaction_type: criteria.transaction.transactionType || ["CASH_IN"], // Default to ["CASH_IN"] if no transactionType
-        min_count: criteria.transaction.minCount || 1, // Default to 1 if minCount is missing
+        ...rewardCriteria.transaction,
+        // reward_type: rewardType,
+        transaction_type: criteria.transaction.transactionType || ["P2P"],
+        min_count: criteria.transaction.minCount || 1,
       };
     }
     // Scenario 2, 4: Transaction Flow (amount and flow-based reward)
@@ -35,20 +35,25 @@ export const mapEligibilityCriteriaToApi = (
       rewardCriteria.transaction_flow = {
         ...rewardCriteria.transaction, // Keep existing transaction properties
         min_amount: criteria.transactionFlow.minAmount || 10, // Default to 10 if minAmount is missing
-        debitOrCredit: criteria.transactionFlow.debitOrCredit || "credit", // Default to "credit" if missing
+        debitOrCredit: criteria.transactionFlow.debitOrCredit || "debit",
       };
     }
   });
 
   // Check if the 'onBoarding' object is either undefined or false
-  if (rewardCriteria.onBoarding === undefined || rewardCriteria.onBoarding === false) {
+  if (
+    rewardCriteria.onBoarding === undefined ||
+    rewardCriteria.onBoarding === false
+  ) {
     delete rewardCriteria.onBoarding;
   }
 
   // Check if the 'transaction' object is either undefined or empty
-  if (!rewardCriteria.transaction || Object.keys(rewardCriteria.transaction).length === 0) {
+  if (
+    !rewardCriteria.transaction ||
+    Object.keys(rewardCriteria.transaction).length === 0
+  ) {
     delete rewardCriteria.transaction;
   }
-
   return rewardCriteria;
 };

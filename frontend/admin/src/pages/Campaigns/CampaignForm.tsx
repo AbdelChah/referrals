@@ -166,17 +166,14 @@ const CampaignForm: React.FC = () => {
           reward_type: values.rewardType, // Explicitly add reward type
           status: "active", // Adjust if the API expects dynamic statuses
         };
-        
+
         const response = await createCampaign(formData);
-    
+
         if (!response.res) {
-          toast.error(
-            "Campaign creation failed:",
-            response.responseError.msg
-          );
+          toast.error("Campaign creation failed:", response.responseError.msg);
           return;
         }
-    
+
         toast.success("Campaign created successfully");
         formik.resetForm();
         setCriteriaList([]);
@@ -186,7 +183,6 @@ const CampaignForm: React.FC = () => {
         toast.error(`An error occurred while creating the campaign: ${error}`);
       }
     },
-    
   });
 
   const handleCriteriaChange = (
@@ -194,6 +190,7 @@ const CampaignForm: React.FC = () => {
     field: keyof EligibilityCriteria,
     value: any
   ) => {
+    console.log("in handleCriteriaChange", index, field, value);
     const updatedCriteriaList = [...criteriaList];
     updatedCriteriaList[index] = {
       ...updatedCriteriaList[index],
@@ -209,7 +206,12 @@ const CampaignForm: React.FC = () => {
   const handleAddCriteria = () => {
     const newCriteriaList: EligibilityCriteria[] = [
       ...criteriaList,
-      { name: "eKYC", eligible: true },
+      {
+        name: "eKYC",
+        eligible: true,
+        reward_amount: 0,
+        currency: "",
+      },
     ];
     setCriteriaList(newCriteriaList);
     formik.setFieldValue(
@@ -388,8 +390,8 @@ const CampaignForm: React.FC = () => {
                     >
                       <option value="eKYC">eKYC</option>
                       <option value="Transaction">Transaction</option>
-                        <option value="TransactionFlow">Transaction Flow                        </option>
-                                          </SelectField>
+                      <option value="TransactionFlow">Transaction Flow </option>
+                    </SelectField>
                   </div>
 
                   {/* Conditional rendering based on the selected type */}
@@ -421,19 +423,21 @@ const CampaignForm: React.FC = () => {
                         <SelectField
                           id={`transactionType-${index}`}
                           name={`transactionType-${index}`}
-                          value={criteria.transaction?.type || "CASH_IN"}
-                          onChange={(e: { target: { value: any } }) =>
+                          value={
+                            criteria.transaction?.transactionType?.[0] || "P2P"
+                          } // Select the first element from the array
+                          onChange={(e: { target: { value: string } }) =>
                             handleCriteriaChange(index, "transaction", {
                               ...criteria.transaction,
-                              type: e.target.value,
+                              transactionType: [e.target.value], // Ensure the selected value is stored as an array
                             })
                           }
                         >
-                         {transactionTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.en}
-                        </option>
-                      ))}
+                          {transactionTypes.map((type) => (
+                            <option key={type.id} value={type.id}>
+                              {type.en}
+                            </option>
+                          ))}
                         </SelectField>
                       </div>
 
@@ -466,16 +470,18 @@ const CampaignForm: React.FC = () => {
                         <SelectField
                           id={`transactionFlow-${index}`}
                           name={`transactionFlow-${index}`}
-                          value={criteria.transactionFlow?.debitOrCredit || "Debit"}
-                          onChange={(e: { target: { value: any } }) =>
-                            handleCriteriaChange(index, "name", {
-                              ...criteria.transactionFlow,
-                              flow: e.target.value,
-                            })
+                          value={
+                            criteria.transactionFlow?.debitOrCredit || "debit"
                           }
+                          onChange={(e) => {
+                            handleCriteriaChange(index, "transactionFlow", {
+                              ...criteria.transactionFlow,
+                              debitOrCredit: e.target.value,
+                            });
+                          }}
                         >
-                          <option value="Debit">Debit</option>
-                          <option value="Credit">Credit</option>
+                          <option value="debit">Debit</option>
+                          <option value="credit">Credit</option>
                         </SelectField>
                       </div>
 
