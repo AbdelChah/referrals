@@ -628,6 +628,7 @@ exports.refereeAction = async (req, res) => {
             name: campaign.name,
             start_date: campaign.start_date,
             end_date: campaign.end_date,
+            min_referees: campaign.min_referees, // Include min_referees
             reward_criteria: campaign.reward_criteria,
             referrers: [],
           };
@@ -692,6 +693,7 @@ exports.refereeAction = async (req, res) => {
       });
     }
   };
+  
   
   
   
