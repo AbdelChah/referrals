@@ -640,7 +640,7 @@ exports.refereeAction = async (req, res) => {
   
         const referrerDetails = {
           referrer_phone: referral.referrer_phone,
-          reward_claimed: referral.reward_claimed,
+          reward_claimed: referral.reward_claimed, // Include reward_claimed for the referrer
           referees: referral.referees.map((referee) => {
             totalReferees += 1; // Increment total referees
             if (referee.status) totalQualifiedReferees += 1; // Increment qualified referees
