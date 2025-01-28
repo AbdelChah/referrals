@@ -604,7 +604,7 @@ exports.refereeAction = async (req, res) => {
 
   exports.getReferralReport = async (req, res) => {
     try {
-      // Fetch all referrals and populate the related campaign
+      // Fetch all referrals and populate the related campaigns
       const referrals = await Referral.find({}).populate('campaign_id').lean();
   
       // Group data by campaigns
@@ -653,29 +653,10 @@ exports.refereeAction = async (req, res) => {
       // Convert the campaign map to an array
       const campaignsReport = Object.values(campaignReports);
   
-      // Calculate totals
-      const totalCampaigns = campaignsReport.length;
-      const totalReferrers = referrals.length;
-      const totalReferees = referrals.reduce(
-        (count, referral) => count + referral.referees.length,
-        0
-      );
-      const totalQualifiedReferees = referrals.reduce(
-        (count, referral) =>
-          count + referral.referees.filter((referee) => referee.status).length,
-        0
-      );
-  
       // Send the response
       res.status(200).json({
         res: true,
-        response: {
-          totalCampaigns,
-          totalReferrers,
-          totalReferees,
-          totalQualifiedReferees,
-          campaigns: campaignsReport,
-        },
+        response: campaignsReport,
       });
     } catch (error) {
       console.error('Error generating campaign report:', error);
@@ -689,5 +670,6 @@ exports.refereeAction = async (req, res) => {
       });
     }
   };
+  
   
   
