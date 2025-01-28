@@ -604,14 +604,24 @@ exports.refereeAction = async (req, res) => {
 
   exports.getReferralReport = async (req, res) => {
     try {
-      // Fetch all referrals and populate the related campaign
+      // Fetch all referrals and populate the related campaigns
       const referrals = await Referral.find({}).populate('campaign_id').lean();
   
-      // Group data by campaigns
+      let totalReferrers = 0;
+      let totalReferees = 0;
+      let totalRewardClaimed = 0;
+      let totalQualifiedReferees = 0;
+  
       const campaignReports = referrals.reduce((campaignMap, referral) => {
         const campaign = referral.campaign_id;
   
-        // If the campaign doesn't exist in the map, initialize it
+        // Handle missing campaign data
+        if (!campaign) {
+          console.warn(`Referral with ID ${referral.referral_code} has no associated campaign.`);
+          return campaignMap; // Skip this referral
+        }
+  
+        // Initialize campaign in the map if it doesn't exist
         if (!campaignMap[campaign.campaign_id]) {
           campaignMap[campaign.campaign_id] = {
             campaign_id: campaign.campaign_id,
@@ -623,11 +633,17 @@ exports.refereeAction = async (req, res) => {
           };
         }
   
-        // Add the referrer and their referees to the campaign
+        // Add referrer details
+        totalReferrers += 1; // Increment total referrers
+        if (referral.reward_claimed) totalRewardClaimed += 1; // Increment claimed rewards
+  
         const referrerDetails = {
           referrer_phone: referral.referrer_phone,
           reward_claimed: referral.reward_claimed,
           referees: referral.referees.map((referee) => {
+            totalReferees += 1; // Increment total referees
+            if (referee.status) totalQualifiedReferees += 1; // Increment qualified referees
+  
             const startDate = referee.actions[0]?.date || null; // First action date
             const completionDate = referee.status
               ? referee.actions.find((action) =>
@@ -644,7 +660,6 @@ exports.refereeAction = async (req, res) => {
           }),
         };
   
-        // Add referrer details to the campaign in the map
         campaignMap[campaign.campaign_id].referrers.push(referrerDetails);
   
         return campaignMap;
@@ -653,26 +668,14 @@ exports.refereeAction = async (req, res) => {
       // Convert the campaign map to an array
       const campaignsReport = Object.values(campaignReports);
   
-      // Calculate totals
-      const totalCampaigns = campaignsReport.length;
-      const totalReferrers = referrals.length;
-      const totalReferees = referrals.reduce(
-        (count, referral) => count + referral.referees.length,
-        0
-      );
-      const totalQualifiedReferees = referrals.reduce(
-        (count, referral) =>
-          count + referral.referees.filter((referee) => referee.status).length,
-        0
-      );
-  
       // Send the response
       res.status(200).json({
         res: true,
         response: {
-          totalCampaigns,
+          totalCampaigns: campaignsReport.length,
           totalReferrers,
           totalReferees,
+          totalRewardClaimed,
           totalQualifiedReferees,
           campaigns: campaignsReport,
         },
@@ -689,6 +692,7 @@ exports.refereeAction = async (req, res) => {
       });
     }
   };
+  
   
   
   
