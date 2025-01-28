@@ -47,6 +47,7 @@ export const StyledTableRow = styled(TableRow)(({ theme }) => ({
   '&:nth-of-type(even)': {
     backgroundColor: theme.palette.action.hover,
   },
+  cursor: "pointer"
 }));
 export const StyledButton = styled(Button)(({ theme }) => ({
     padding: theme.spacing(0.5, 1.5), // Match Referral Table button size

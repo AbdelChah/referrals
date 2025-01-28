@@ -30,3 +30,17 @@ export interface TransactionFlow {
   debitOrCredit: "debit" | "credit";
   minAmount: number;
 }
+
+
+export interface CampaignsMeta {
+  id: string;
+  campaignName: string;
+  startDate: string;
+  endDate: string;
+  rewardType: string;
+  eligibilityCriteria: string;
+  status: string;
+  totalReferrals: number;
+  totalReferees: number;
+  totalCompleted: number;
+}

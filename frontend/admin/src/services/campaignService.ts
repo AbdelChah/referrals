@@ -1,5 +1,5 @@
 import api from "./axiosInstance";
-import { Campaign } from "../Models/Campaign";
+import { Campaign, CampaignsMeta } from "../Models/Campaign";
 
 import { mapApiResponseToCampaign } from "../utils/mapApiResponseToCampaign";
 
@@ -30,6 +30,16 @@ export const deleteCampaign = async (campaignId: string): Promise<void> => {
     console.log(`Campaign ${campaignId} deleted successfully`, response.data);
   } catch (error) {
     console.error(`Error deleting campaign with ID ${campaignId}:`, error);
+    throw error;
+  }
+};
+
+export const getCampaignsMeta = async (): Promise<CampaignsMeta[]> => {
+  try {
+    const response = await api.get("/api/campaigns/meta");
+    return response.data.response;
+  } catch (error) {
+    console.error("Error fetching campaigns meta:", error);
     throw error;
   }
 };

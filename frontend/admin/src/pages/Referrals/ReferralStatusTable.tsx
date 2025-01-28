@@ -124,8 +124,8 @@ const ReferralStatusTable: React.FC = () => {
                   <StyledTableCell>
                     <Box>
                       {referrer.campaigns.length > 0 ? (
-                        referrer.campaigns.map((campaign: any) => (
-                          <Typography key={campaign.campaignId} variant="body2">
+                        referrer.campaigns.map((campaign: any, index: number) => (
+                          <Typography key={campaign.campaignId || index} variant="body2">
                             {campaign.campaignName}
                           </Typography>
                         ))
