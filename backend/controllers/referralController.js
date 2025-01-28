@@ -604,61 +604,86 @@ exports.refereeAction = async (req, res) => {
 
   exports.getReferralReport = async (req, res) => {
     try {
+      // Fetch all referrals and populate the related campaign
       const referrals = await Referral.find({}).populate('campaign_id').lean();
   
-      let totalReferrers = 0;
-      let totalReferees = 0;
-      let totalRewardClaimed = 0;
-      let totalQualifiedReferees = 0;
+      // Group data by campaigns
+      const campaignReports = referrals.reduce((campaignMap, referral) => {
+        const campaign = referral.campaign_id;
   
-      const reportData = referrals.map((referral) => {
-        totalReferrers += 1; // Count each referral as a referrer
-        if (referral.reward_claimed) totalRewardClaimed += 1; // Count reward-claimed referrers
-  
-        const refereesWithDetails = referral.referees.map((referee) => {
-          totalReferees += 1; // Count each referee
-          if (referee.status) totalQualifiedReferees += 1; // Count referees with status: true
-  
-          const startDate = referee.actions[0]?.date || null; // First action date
-          const completionDate = referee.status
-            ? referee.actions.find((action) =>
-                checkRefereeEligibility(referral.campaign_id, referee)
-              )?.date || null
-            : null;
-  
-          return {
-            referee_phone: referee.referee_phone,
-            status: referee.status,
-            start_date: startDate,
-            completion_date: completionDate,
-            referred_by: referral.referrer_phone,
+        // If the campaign doesn't exist in the map, initialize it
+        if (!campaignMap[campaign.campaign_id]) {
+          campaignMap[campaign.campaign_id] = {
+            campaign_id: campaign.campaign_id,
+            name: campaign.name,
+            start_date: campaign.start_date,
+            end_date: campaign.end_date,
+            reward_criteria: campaign.reward_criteria,
+            referrers: [],
           };
-        });
+        }
   
-        return {
+        // Add the referrer and their referees to the campaign
+        const referrerDetails = {
           referrer_phone: referral.referrer_phone,
           reward_claimed: referral.reward_claimed,
-          referees: refereesWithDetails,
-        };
-      });
+          referees: referral.referees.map((referee) => {
+            const startDate = referee.actions[0]?.date || null; // First action date
+            const completionDate = referee.status
+              ? referee.actions.find((action) =>
+                  checkRefereeEligibility(campaign, referee)
+                )?.date || null
+              : null;
   
+            return {
+              referee_phone: referee.referee_phone,
+              status: referee.status,
+              start_date: startDate,
+              completion_date: completionDate,
+            };
+          }),
+        };
+  
+        // Add referrer details to the campaign in the map
+        campaignMap[campaign.campaign_id].referrers.push(referrerDetails);
+  
+        return campaignMap;
+      }, {});
+  
+      // Convert the campaign map to an array
+      const campaignsReport = Object.values(campaignReports);
+  
+      // Calculate totals
+      const totalCampaigns = campaignsReport.length;
+      const totalReferrers = referrals.length;
+      const totalReferees = referrals.reduce(
+        (count, referral) => count + referral.referees.length,
+        0
+      );
+      const totalQualifiedReferees = referrals.reduce(
+        (count, referral) =>
+          count + referral.referees.filter((referee) => referee.status).length,
+        0
+      );
+  
+      // Send the response
       res.status(200).json({
         res: true,
         response: {
+          totalCampaigns,
           totalReferrers,
           totalReferees,
-          totalRewardClaimed,
           totalQualifiedReferees,
-          referrers: reportData,
+          campaigns: campaignsReport,
         },
       });
     } catch (error) {
-      console.error('Error generating referral report:', error);
+      console.error('Error generating campaign report:', error);
       res.status(500).json({
         res: false,
         responseError: {
-          msg: 'Failed to generate referral report.',
-          errCode: '19202',
+          msg: 'Failed to generate campaign report.',
+          errCode: '19203',
           msgAPI: 'System error while generating report.',
         },
       });
