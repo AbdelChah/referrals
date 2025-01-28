@@ -53,6 +53,17 @@ function buildEligibilityCriteria(criteria) {
   return parts.join(' | ');
 }
 
+// Helper function to compute campaign status dynamically
+const computeCampaignStatus = (start_date, end_date) => {
+  const currentDate = new Date();
+  if (currentDate >= new Date(start_date) && currentDate <= new Date(end_date)) {
+    return 'active';
+  } else if (currentDate > new Date(end_date)) {
+    return 'completed';
+  }
+  return 'inactive';
+};
+
 exports.createCampaign = async (req, res) => {
   try {
     // Fetch valid values from the remote endpoint
@@ -216,11 +227,13 @@ exports.createCampaign = async (req, res) => {
         },
       });
     }
-
+    
     // *********************************
     // REMOVED CHECK FOR UNIQUE ACTIVE CAMPAIGN
     // *********************************
-    const finalStatus = status || 'active';
+
+
+    const finalStatus = computeCampaignStatus(start_date, end_date);
     if (finalStatus === 'active') {
       const activeCampaign = await Campaign.findOne({ status: 'active' });
       if (activeCampaign) {

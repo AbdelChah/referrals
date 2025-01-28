@@ -42,7 +42,7 @@ const referralSchema = new Schema({
         },
       ],
       rewards: {
-        onBoarding: { type: Boolean, default: false },      // Ekyc completed
+        onBoarding: { type: Boolean, default: false },      // EKYC completed
         transaction_flow: { type: Boolean, default: false },// Debit/Credit + min_amount
         transaction_count: { type: Number, default: 0 },    // How many valid typed transactions
         transaction_type: { type: Boolean, default: false },// True if transaction_count >= min_count
@@ -52,6 +52,10 @@ const referralSchema = new Schema({
   total_rewards: {
     type: Number,
     default: 0,
+  },
+  reward_claimed: { 
+    type: Boolean, 
+    default: false, // Tracks if the referrer has claimed the reward
   },
   created_at: {
     type: Date,

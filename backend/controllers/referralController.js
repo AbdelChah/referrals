@@ -418,9 +418,12 @@ exports.refereeAction = async (req, res) => {
               currency: rewardCurrency,
               referralId,
             });
+            referral.reward_claimed = true;
             console.log(
               `Reward dispatched to ${referral.referrer_phone}: ${rewardAmount} ${rewardCurrency}.`
             );
+
+            
           } catch (err) {
             console.error('Error dispatching reward:', err.message);
             // Decide if you want to rollback or just log the failure
@@ -552,7 +555,7 @@ exports.refereeAction = async (req, res) => {
   
         // Map referees
         const refereesInfo = referral.referees.map((ref) => ({
-          referralId: referral.referral_id,
+          referralId: referral.referral_code,
           referee_phone: ref.referee_phone,
           // Date of the first action, if any
           date: ref.actions?.[0]?.date || null,
@@ -597,4 +600,69 @@ exports.refereeAction = async (req, res) => {
       });
     }
   };
+  
+
+  exports.getReferralReport = async (req, res) => {
+    try {
+      const referrals = await Referral.find({}).populate('campaign_id').lean();
+  
+      let totalReferrers = 0;
+      let totalReferees = 0;
+      let totalRewardClaimed = 0;
+      let totalQualifiedReferees = 0;
+  
+      const reportData = referrals.map((referral) => {
+        totalReferrers += 1; // Count each referral as a referrer
+        if (referral.reward_claimed) totalRewardClaimed += 1; // Count reward-claimed referrers
+  
+        const refereesWithDetails = referral.referees.map((referee) => {
+          totalReferees += 1; // Count each referee
+          if (referee.status) totalQualifiedReferees += 1; // Count referees with status: true
+  
+          const startDate = referee.actions[0]?.date || null; // First action date
+          const completionDate = referee.status
+            ? referee.actions.find((action) =>
+                checkRefereeEligibility(referral.campaign_id, referee)
+              )?.date || null
+            : null;
+  
+          return {
+            referee_phone: referee.referee_phone,
+            status: referee.status,
+            start_date: startDate,
+            completion_date: completionDate,
+            referred_by: referral.referrer_phone,
+          };
+        });
+  
+        return {
+          referrer_phone: referral.referrer_phone,
+          reward_claimed: referral.reward_claimed,
+          referees: refereesWithDetails,
+        };
+      });
+  
+      res.status(200).json({
+        res: true,
+        response: {
+          totalReferrers,
+          totalReferees,
+          totalRewardClaimed,
+          totalQualifiedReferees,
+          referrers: reportData,
+        },
+      });
+    } catch (error) {
+      console.error('Error generating referral report:', error);
+      res.status(500).json({
+        res: false,
+        responseError: {
+          msg: 'Failed to generate referral report.',
+          errCode: '19202',
+          msgAPI: 'System error while generating report.',
+        },
+      });
+    }
+  };
+  
   

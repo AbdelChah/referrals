@@ -1,6 +1,3 @@
-/*******************************
- * models/Campaign.js
- ******************************/
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { v4: uuidv4 } = require('uuid');
@@ -28,29 +25,24 @@ const campaignSchema = new Schema({
     required: true,
   },
   reward_criteria: {
-    // The numerical reward amount for the campaign
     reward_amount: {
       type: Number,
       required: true,
     },
-    // The currency used for the reward (to be validated dynamically)
     currency: {
       type: String,
       required: true,
     },
-    // Boolean indicating if onBoarding (eKYC) is required
     onBoarding: {
       type: Boolean,
       default: false,
     },
-    // Transaction flow eligibility
     transaction_flow: {
-      debitOrCredit: String, // validated dynamically
-      min_amount: Number,    // validated if provided
+      debitOrCredit: String,
+      min_amount: Number,
     },
-    // Transaction-type eligibility
     transaction: {
-      transaction_type: [String], // validated dynamically
+      transaction_type: [String],
       min_count: Number,
     },
   },
@@ -64,5 +56,20 @@ const campaignSchema = new Schema({
     default: Date.now,
   },
 });
+
+// Add a virtual to dynamically compute `status`
+campaignSchema.virtual('dynamicStatus').get(function () {
+  const currentDate = new Date();
+  if (currentDate >= this.start_date && currentDate <= this.end_date) {
+    return 'active';
+  } else if (currentDate > this.end_date) {
+    return 'completed';
+  }
+  return 'inactive';
+});
+
+// Ensure `dynamicStatus` is included when converting to JSON
+campaignSchema.set('toJSON', { virtuals: true });
+campaignSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Campaign', campaignSchema);
