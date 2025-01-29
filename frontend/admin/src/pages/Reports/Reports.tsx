@@ -10,7 +10,7 @@ import {
 import ReportsDetailsModal from "./ReportsDetailsModal"; // Assuming the modal is in this path
 import { fetchReferralsReport } from "../../services/referralsService";
 import { ReferralReport, Campaign } from "../../Models/Reports";
-import { exportToCSV } from "../../utils/exportToCSV";
+import { exportToCSV } from "../../utils/exportReportsToCSV";
 import { Download } from "lucide-react";
 import { Title } from "../../styles/title.styles";
 
@@ -44,7 +44,7 @@ const Reports = () => {
       <Title>Referral Report</Title>
       <Table>
         <thead>
-          <TableRow>
+          <TableRow cursor="default">
             <TableHead>Campaign Name</TableHead>
             <TableHead>Total Referrers</TableHead>
             <TableHead>Total Referees</TableHead>
@@ -52,7 +52,7 @@ const Reports = () => {
             <TableHead>Total Qualified Referees</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
-          </thead>
+        </thead>
         {referralReport?.response?.campaigns.map((campaign) => (
           <TableRow
             key={campaign.campaign_id}
@@ -75,14 +75,22 @@ const Reports = () => {
               )}
             </TableCell>
             <TableCell>
-              <StyledButton onClick={() => exportToCSV([campaign])}>
+              <StyledButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  exportToCSV([campaign]);
+                }}
+              >
                 <Download />
               </StyledButton>
             </TableCell>
           </TableRow>
         ))}
       </Table>
-      <StyledButton style={{ marginTop: '16px' }} onClick={() => exportToCSV(referralReport)}>
+      <StyledButton
+        style={{ marginTop: "16px" }}
+        onClick={() => exportToCSV(referralReport)}
+      >
         Export All to CSV
       </StyledButton>
       <ReportsDetailsModal

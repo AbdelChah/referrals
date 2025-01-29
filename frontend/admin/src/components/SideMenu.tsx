@@ -9,7 +9,7 @@ const menuItems = [
   { text: 'Campaigns', icon: <Campaign />, path: '/campaigns' },
   { text: 'Reports', icon: <Summarize />, path: '/reports' },
   {text: 'Referrals',icon:<GroupAdd/> , path: '/referrals'},
-  { text: 'Disputes', icon: <Help />, path: '/disputes' },
+  // { text: 'Disputes', icon: <Help />, path: '/disputes' },
   { text: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 

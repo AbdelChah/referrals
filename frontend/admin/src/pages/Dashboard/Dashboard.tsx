@@ -8,10 +8,9 @@ import {
 } from "../../styles/table.styles"; // Reusing styled components
 import { Title } from "../../styles/title.styles";
 import { Typography } from "@mui/material";
-import { Download, Info } from "lucide-react";
 import { getCampaignsMeta } from "../../services/campaignService";
 import { CampaignsMeta } from "../../Models/Campaign";
-
+import { exportToCSV } from "../../utils/exportDashboardtoCSV";
 const Dashboard: React.FC = () => {
   const [campaigns, setCampaigns] = useState<CampaignsMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,8 +60,8 @@ const Dashboard: React.FC = () => {
       new Date(campaign.endDate).toLocaleDateString(),
       campaign.rewardType,
       Array.isArray(campaign.eligibilityCriteria)
-        ? campaign.eligibilityCriteria.join(" | ")
-        : campaign.eligibilityCriteria,
+        ? `"${campaign.eligibilityCriteria.join("\n")}"`
+        : `"${campaign.eligibilityCriteria}"`,
       campaign.totalReferrals,
       campaign.totalReferees,
       campaign.totalCompleted,
@@ -88,54 +87,62 @@ const Dashboard: React.FC = () => {
       ) : campaigns.length === 0 ? (
         <Typography>No campaigns available.</Typography>
       ) : (
-        <Table>
-          <thead>
-            <TableRow>
-              <TableHeader>Campaign Name</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Start Date</TableHeader>
-              <TableHeader>End Date</TableHeader>
-              <TableHeader>Reward Type</TableHeader>
-              <TableHeader>Eligibility Criteria</TableHeader>
-              <TableHeader>Total Referrals</TableHeader>
-              <TableHeader>Total Referees</TableHeader>
-              <TableHeader>Total Completed</TableHeader>
-            </TableRow>
-          </thead>
-          <tbody>
-            {campaigns.map((campaign) => (
-              <TableRow key={campaign.id}>
-                <TableCell>{campaign.campaignName}</TableCell>
-                <TableCell>{campaign.status}</TableCell>
-                <TableCell>
-                  {new Date(campaign.startDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  {new Date(campaign.endDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{campaign.rewardType}</TableCell>
-                <TableCell>
-                  <ul>
-                    {Array.isArray(campaign.eligibilityCriteria) &&
-                    campaign.eligibilityCriteria.length > 0 ? (
-                      campaign.eligibilityCriteria.map(
-                        (criterion: string, index: number) => (
-                          <li key={index}>{criterion}</li>
-                        )
-                      )
-                    ) : (
-                      <li>No eligibility criteria available</li>
-                    )}
-                  </ul>
-                </TableCell>
-
-                <TableCell>{campaign.totalReferrals}</TableCell>
-                <TableCell>{campaign.totalReferees}</TableCell>
-                <TableCell>{campaign.totalCompleted}</TableCell>
+        <>
+          <Table>
+            <thead>
+              <TableRow cursor="default">
+                <TableHeader>Campaign Name</TableHeader>
+                <TableHeader>Status</TableHeader>
+                <TableHeader>Start Date</TableHeader>
+                <TableHeader>End Date</TableHeader>
+                <TableHeader>Reward Type</TableHeader>
+                <TableHeader>Eligibility Criteria</TableHeader>
+                <TableHeader>Total Referrals</TableHeader>
+                <TableHeader>Total Referees</TableHeader>
+                <TableHeader>Total Completed</TableHeader>
               </TableRow>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {campaigns.map((campaign) => (
+                <TableRow cursor="default" key={campaign.id}>
+                  <TableCell>{campaign.campaignName}</TableCell>
+                  <TableCell>{campaign.status}</TableCell>
+                  <TableCell>
+                    {new Date(campaign.startDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(campaign.endDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>{campaign.rewardType}</TableCell>
+                  <TableCell>
+                    <ul>
+                      {Array.isArray(campaign.eligibilityCriteria) &&
+                      campaign.eligibilityCriteria.length > 0 ? (
+                        campaign.eligibilityCriteria.map(
+                          (criterion: string, index: number) => (
+                            <li key={index}>{criterion}</li>
+                          )
+                        )
+                      ) : (
+                        <li>No eligibility criteria available</li>
+                      )}
+                    </ul>
+                  </TableCell>
+
+                  <TableCell>{campaign.totalReferrals}</TableCell>
+                  <TableCell>{campaign.totalReferees}</TableCell>
+                  <TableCell>{campaign.totalCompleted}</TableCell>
+                </TableRow>
+              ))}
+            </tbody>
+          </Table>
+          <StyledButton
+            style={{ marginTop: "16px" }}
+            onClick={() => exportToCSV(campaigns)}
+          >
+            Export All to CSV
+          </StyledButton>
+        </>
       )}
     </>
   );

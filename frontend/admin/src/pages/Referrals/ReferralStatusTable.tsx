@@ -78,11 +78,11 @@ const ReferralStatusTable: React.FC = () => {
       <Container>
         <StyledTable>
           <TableHead>
-            <TableRow>
+            <StyledTableRow cursor="default">
               <TableHeaderCell>Referrer Phone</TableHeaderCell>
               <TableHeaderCell>Referees</TableHeaderCell>
               <TableHeaderCell>Campaigns</TableHeaderCell>
-            </TableRow>
+            </StyledTableRow>
           </TableHead>
           <TableBody>
             {referralData

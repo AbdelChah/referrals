@@ -89,7 +89,7 @@ const CampaignList: React.FC = () => {
       <div>
         <Table>
           <thead>
-            <TableRow>
+            <TableRow cursor="default">
               <TableHeader>Campaign Name</TableHeader>
               <TableHeader>Start Date</TableHeader>
               <TableHeader>End Date</TableHeader>
