@@ -514,10 +514,8 @@ exports.resetPassword = async (req, res) => {
         }
 
         // 5. Hash the New Password and Update
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        admin.password = hashedPassword;
+        admin.password = newPassword;
         await admin.save();
 
         // 6. Successful Password Reset Response

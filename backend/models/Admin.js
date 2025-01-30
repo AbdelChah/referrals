@@ -14,7 +14,7 @@ const adminSchema = new Schema(
       lowercase: true, // Converts to lowercase before saving
       minlength: 3, // Minimum 3 characters
       maxlength: 30, // Maximum 30 characters
-      match: [/^[a-zA-Z0-9]+$/, 'Username must be alphanumeric.'], // Alphanumeric only
+      
     },
     email: { // New email field
       type: String,
