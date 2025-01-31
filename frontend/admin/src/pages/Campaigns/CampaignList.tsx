@@ -95,65 +95,66 @@ const CampaignList: React.FC = () => {
               <TableHeader>End Date</TableHeader>
               <TableHeader>Reward Type</TableHeader>
               <TableHeader>Eligibility Criteria</TableHeader>
-              <TableHeader>Actions</TableHeader> {/* New column for actions */}
+              <TableHeader>Actions</TableHeader>
             </TableRow>
           </thead>
           <tbody>
-            {paginatedCampaigns.map((campaign) => (
-              <TableRow
-                key={campaign.id}
-                onClick={() => handleRowClick(campaign)}
-                style={{ cursor: "pointer" }}
-              >
-                <TableCell onClick={() => handleRowClick(campaign)}>
-                  {campaign.campaignName}
-                </TableCell>
-                <TableCell>{formatDate(campaign.startDate)}</TableCell>
-                <TableCell>{formatDate(campaign.endDate)}</TableCell>
-                <TableCell>
-                  {Array.isArray(campaign.rewardType)
-                    ? campaign.rewardType.join(", ")
-                    : campaign.rewardType}
-                </TableCell>
-                <TableCell>
-                  <ul>
-                    {campaign.eligibilityCriteria.length > 0 ? (
-                      campaign.eligibilityCriteria.map((criterion, index) => (
-                        <li key={index}>
-                          {criterion.name === "Onboarding"
-                            ? `Onboarding: ${
-                                criterion.onBoarding ? "Yes" : "No"
-                              }`
-                            : null}
-                          {criterion.name === "Transaction" &&
-                          criterion.transaction?.transactionType
-                            ? `Transaction: ${criterion.transaction.transactionType.join(
-                                ", "
-                              )} with count ${criterion.transaction.minCount}`
-                            : null}
-                          {criterion.name === "TransactionFlow" &&
-                          criterion.transactionFlow?.debitOrCredit
-                            ? `TransactionFlow: ${criterion.transactionFlow.debitOrCredit} of ${criterion.transactionFlow.minAmount}`
-                            : null}
-                        </li>
-                      ))
-                    ) : (
-                      <li>No eligibility criteria available</li>
-                    )}
-                  </ul>
-                </TableCell>
-                <TableCell>
-                  <StyledButton
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering row click
-                      handleDelete(campaign.id);
-                    }}
-                  >
-                    Delete
-                  </StyledButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            <>
+              {paginatedCampaigns.map((campaign) => (
+                <TableRow
+                  key={campaign.id}
+                  onClick={() => handleRowClick(campaign)}
+                >
+                  <TableCell onClick={() => handleRowClick(campaign)}>
+                    {campaign.campaignName}
+                  </TableCell>
+                  <TableCell>{formatDate(campaign.startDate)}</TableCell>
+                  <TableCell>{formatDate(campaign.endDate)}</TableCell>
+                  <TableCell>
+                    {Array.isArray(campaign.rewardType)
+                      ? campaign.rewardType.join(", ")
+                      : campaign.rewardType}
+                  </TableCell>
+                  <TableCell>
+                    <ul>
+                      {campaign.eligibilityCriteria.length > 0 ? (
+                        campaign.eligibilityCriteria.map((criterion, index) => (
+                          <li key={index}>
+                            {criterion.name === "Onboarding"
+                              ? `Onboarding: ${
+                                  criterion.onBoarding ? "Yes" : "No"
+                                }`
+                              : null}
+                            {criterion.name === "Transaction" &&
+                            criterion.transaction?.transactionType
+                              ? `Transaction: ${criterion.transaction.transactionType.join(
+                                  ", "
+                                )} with count ${criterion.transaction.minCount}`
+                              : null}
+                            {criterion.name === "TransactionFlow" &&
+                            criterion.transactionFlow?.debitOrCredit
+                              ? `TransactionFlow: ${criterion.transactionFlow.debitOrCredit} of ${criterion.transactionFlow.minAmount}`
+                              : null}
+                          </li>
+                        ))
+                      ) : (
+                        <li>No eligibility criteria available</li>
+                      )}
+                    </ul>
+                  </TableCell>
+                  <TableCell>
+                    <StyledButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(campaign.id);
+                      }}
+                    >
+                      Delete
+                    </StyledButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
           </tbody>
         </Table>
 

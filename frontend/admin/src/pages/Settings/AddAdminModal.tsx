@@ -40,7 +40,6 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({ open, onClose, onSubmit }
 
       // Call the registerService from authenticationService
       const response = await registerService(data);
-      console.log("Admin registered successfully:", response);
       onSubmit(values); // Call onSubmit with the values after successful registration
     } catch (error) {
       console.error("Error registering admin:", error);

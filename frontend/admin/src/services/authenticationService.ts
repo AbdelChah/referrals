@@ -6,7 +6,6 @@ import {
   ResetPasswordRequest,
   AuthResponse,
   OtpRequest,
-  OtpResponse,
 } from "../Models/Authentication";
 
 const defaultAuthResponse: AuthResponse = {
@@ -18,13 +17,6 @@ const defaultAuthResponse: AuthResponse = {
   },
 };
 
-const defaultOtpResponse: OtpResponse = {
-  res: false,
-  response: {
-    msg: "An error occurred while validating OTP.",
-    data: { accessToken: "", refreshToken: "" },
-  },
-};
 
 // Services
 export const loginService = async (data: LoginRequest): Promise<AuthResponse> =>
@@ -46,28 +38,9 @@ export const resetPasswordService = async (
   apiCall("/api/auth/resetPassword", "POST", data, defaultAuthResponse);
 
 
-export const validateOtpService = async (otpRequest: OtpRequest): Promise<OtpResponse> => {
-  try {
-    const response = await apiCall("/api/auth/verifyOTP", "POST",otpRequest, defaultOtpResponse);
+export const validateOtpService = async (otpRequest: OtpRequest): Promise<AuthResponse> =>
+apiCall("/api/auth/verifyOTP", "POST",otpRequest, defaultAuthResponse);
 
-    if (response.res && response.response?.data) {
-      const { accessToken, refreshToken } = response.response.data;
-      saveTokens(accessToken, refreshToken);
-    }
-
-    return response;
-  } catch (error) {
-    console.error("Validate OTP service error:", error);
-    return {
-      res: false,
-      responseError: {
-        msg: "OTP validation failed.",
-        errCode: "VALIDATE_OTP_ERROR",
-        msgAPI: "Unable to validate OTP. Please try again.",
-      },
-    };
-  }
-};
 
 export const refreshTokenService = async (
   refreshToken: string

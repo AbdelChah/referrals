@@ -3,27 +3,32 @@ import * as Yup from "yup";
 import FormWrapper from "../../../components/FormWrapper";
 import { FormikValues } from "formik";
 import { useAuthContext } from "../../../hooks/useAuthContext";
-
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const validationSchema = Yup.object({
-  username: Yup.string().required("username is required"),
+  username: Yup.string().required("Username is required"),
   password: Yup.string().required("Password is required"),
 });
 
 const Login: React.FC = () => {
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const authContext = useAuthContext();
+  const navigate = useNavigate();
 
   const { login } = authContext;
+
   const handleSubmit = async (values: FormikValues) => {
     const { username, password } = values;
-
+    setIsLoading(true);
+    setError("");
     try {
-      await login(username, password, setError);
+      await login(username, password);
     } catch (err) {
-      // This should be unnecessary as the context already handles errors
       console.error("Unexpected error:", err);
+      setError("Invalid username or password.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -34,10 +39,10 @@ const Login: React.FC = () => {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
       fields={[
-        { name: "username", label: "username", type: "username" },
+        { name: "username", label: "Username", type: "text" },
         { name: "password", label: "Password", type: "password" },
       ]}
-      buttonLabel="Login"
+      buttonLabel={isLoading ? "Logging in..." : "Login"}
       errorMessage={error}
     >
       <Link

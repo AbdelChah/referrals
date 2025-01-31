@@ -53,39 +53,41 @@ const Reports = () => {
             <TableHead>Actions</TableHead>
           </TableRow>
         </thead>
-        {referralReport?.response?.campaigns.map((campaign) => (
-          <TableRow
-            key={campaign.campaign_id}
-            onClick={() => handleRowClick(campaign)}
-          >
-            <TableCell>{campaign.name}</TableCell>
-            <TableCell>{campaign.referrers.length}</TableCell>
-            <TableCell>
-              {campaign.referrers.reduce(
-                (acc, referrer) => acc + referrer.referees.length,
-                0
-              )}
-            </TableCell>
-            <TableCell>{campaign.reward_criteria.reward_amount}</TableCell>
-            <TableCell>
-              {campaign.referrers.reduce(
-                (acc, referrer) =>
-                  acc + referrer.referees.filter((r) => r.status).length,
-                0
-              )}
-            </TableCell>
-            <TableCell>
-              <StyledButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  exportToCSV([campaign]);
-                }}
-              >
-                <Download />
-              </StyledButton>
-            </TableCell>
-          </TableRow>
-        ))}
+        <tbody>
+          {referralReport?.response?.campaigns.map((campaign) => (
+            <TableRow
+              key={campaign.campaign_id}
+              onClick={() => handleRowClick(campaign)}
+            >
+              <TableCell>{campaign.name}</TableCell>
+              <TableCell>{campaign.referrers.length}</TableCell>
+              <TableCell>
+                {campaign.referrers.reduce(
+                  (acc, referrer) => acc + referrer.referees.length,
+                  0
+                )}
+              </TableCell>
+              <TableCell>{campaign.reward_criteria.reward_amount}</TableCell>
+              <TableCell>
+                {campaign.referrers.reduce(
+                  (acc, referrer) =>
+                    acc + referrer.referees.filter((r) => r.status).length,
+                  0
+                )}
+              </TableCell>
+              <TableCell>
+                <StyledButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    exportToCSV([campaign]);
+                  }}
+                >
+                  <Download />
+                </StyledButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </tbody>
       </Table>
       <StyledButton
         style={{ marginTop: "16px" }}

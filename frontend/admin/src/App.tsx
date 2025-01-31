@@ -10,6 +10,7 @@ import FooterWrapper from "./components/FooterWrapper";
 import { defaultTheme, bobTheme, weepayTheme } from './theme/theme';
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import AuthenticationInterceptor from "./services/authenticationInterceptor";
 
 function App() {
   const themeVariable = import.meta.env.VITE_THEME
@@ -30,6 +31,7 @@ function App() {
         }}
       >
         <AuthenticationProvider>
+        <AuthenticationInterceptor /> 
           {/* Layout container */}
           <Box sx={{ display: 'flex', height: '100vh' }}>
             <SideMenuWrapper />

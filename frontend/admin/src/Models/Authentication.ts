@@ -55,18 +55,3 @@ export interface OtpRequest {
   otp: string;
 }
 
-export interface OtpResponse {
-  res: boolean;
-  responseError?: {
-    msg: string;
-    errCode: string;
-    msgAPI: string;
-  };
-  response?: {
-    msg: string;
-    data: {
-      accessToken: string;
-      refreshToken: string;
-    };
-  };
-}

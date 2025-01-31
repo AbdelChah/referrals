@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { Dashboard, Summarize, Settings, Help, Campaign, GroupAdd } from '@mui/icons-material';
-import { StyledDrawer, MenuHeader } from './sideMenu.styles'; 
+import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Dashboard, Summarize, Settings, Help, Campaign, GroupAdd, AdminPanelSettings } from '@mui/icons-material';
+import { StyledDrawer, MenuHeader, StyledListItemButton } from './sideMenu.styles'; 
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -27,27 +27,28 @@ const SideMenu: React.FC = () => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton
+            <StyledListItemButton
               onClick={() => handleNavigation(item.path)}
               selected={location.pathname === item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.light',
-                  color: 'primary.contrastText',
-                  '& .MuiListItemIcon-root': {
-                    color: 'primary.contrastText',
-                  },
-                },
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
-            </ListItemButton>
+            </StyledListItemButton>
           </ListItem>
         ))}
+        
+        {/* Show "Add Admin" or "Register Admin" only for the user "infovariah" */}
+        {sessionStorage.getItem("username") === "info@veriah.com" && (
+          <ListItem key="add-admin" disablePadding>
+            <StyledListItemButton
+              onClick={() => handleNavigation("/admin-settings")}
+              selected={location.pathname === "/admin-settings"}
+            >
+              <ListItemIcon><AdminPanelSettings /></ListItemIcon>
+              <ListItemText primary="Register Admin" />
+            </StyledListItemButton>
+          </ListItem>
+        )}
       </List>
     </StyledDrawer>
   );

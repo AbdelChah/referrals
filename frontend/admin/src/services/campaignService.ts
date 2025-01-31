@@ -27,7 +27,6 @@ export const createCampaign = async (campaignData: any): Promise<any> => {
 export const deleteCampaign = async (campaignId: string): Promise<void> => {
   try {
     const response = await api.delete(`/api/campaigns/${campaignId}`);
-    console.log(`Campaign ${campaignId} deleted successfully`, response.data);
   } catch (error) {
     console.error(`Error deleting campaign with ID ${campaignId}:`, error);
     throw error;

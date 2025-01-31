@@ -190,7 +190,6 @@ const CampaignForm: React.FC = () => {
     field: keyof EligibilityCriteria,
     value: any
   ) => {
-    console.log("in handleCriteriaChange", index, field, value);
     const updatedCriteriaList = [...criteriaList];
     updatedCriteriaList[index] = {
       ...updatedCriteriaList[index],

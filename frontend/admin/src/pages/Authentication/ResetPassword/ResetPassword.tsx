@@ -4,6 +4,7 @@ import { FormikValues } from 'formik';
 import FormWrapper from '../../../components/FormWrapper';
 import { resetPasswordService } from '../../../services/authenticationService'; 
 import { ResetPasswordRequest, AuthResponse } from '../../../Models/Authentication';
+import { toast } from 'react-toastify';
 
 // Yup validation schema
 const validationSchema = Yup.object({
@@ -36,8 +37,7 @@ const ResetPassword: React.FC = () => {
         email,
         newPassword
       } as ResetPasswordRequest);
-
-      console.log('Reset Password Success:', response);
+      toast.success("Password reset successfully!");
       // Handle success response (e.g., navigate to login or show success message)
     } catch (err: any) {
       console.error('Reset Password Error:', err);

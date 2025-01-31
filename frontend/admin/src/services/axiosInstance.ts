@@ -1,4 +1,3 @@
-// src/services/api.ts
 import axios from "axios";
 import {
   getAccessToken,
@@ -8,7 +7,6 @@ import {
 } from "../helpers/tokenHelper";
 import { refreshTokenService } from "./authenticationService";
 import { processQueue } from "../utils/processQueue";
-import { useNavigate } from "react-router-dom";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,11 +20,14 @@ const api = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: Array<{
+  resolve: (value: string) => void;
+  reject: (reason?: any) => void;
+}> = [];
 
 // Request Interceptor
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
 
@@ -36,10 +37,15 @@ api.interceptors.request.use(
       "/api/auth/verifyOTP",
       "/api/auth/logout",
     ];
+
     if (!excludedRoutes.includes(config.url!)) {
       if (config.url === "/api/auth/refresh") {
-        console.log("in axios instance interseptor accesstoken", accessToken);
-        config.data = { refreshToken };
+        if (refreshToken && refreshToken !== "undefined") {
+          config.data = { refreshToken };
+        } else {
+          clearTokens();
+          return Promise.reject(new Error("Invalid refresh token"));
+        }
       } else if (accessToken) {
         config.headers["Authorization"] = `Bearer ${accessToken}`;
       }
@@ -55,18 +61,22 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (
+
+    // ✅ Detect Token Expiration Properly
+    const isAuthError =
       error.response &&
-      (error.response.status === 401 || error.response.status === 403) &&
-      !originalRequest._retry
-    ) {
+      (error.response.status === 401 || error.response.status === 403);
+
+    if (isAuthError && !originalRequest._retry) {
+      console.warn("⚠️ Access token expired. Trying to refresh...");
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
             originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            return axios(originalRequest);
+            return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
       }
@@ -75,35 +85,42 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       const refreshToken = getRefreshToken();
-      if (!refreshToken) {
-        const navigate = useNavigate();
+      if (!refreshToken || refreshToken === "undefined") {
+        console.error("🚫 No valid refresh token. Logging out...");
+        processQueue(failedQueue, "No valid refresh token", null);
         clearTokens();
-        navigate("/login");
         return Promise.reject(error);
       }
 
       try {
+        console.log("🔄 Calling refresh token API...");
         const response = await refreshTokenService(refreshToken);
 
         if (response.res && response.response?.data) {
           const { accessToken, refreshToken: newRefreshToken } =
             response.response.data;
-          saveTokens(accessToken, newRefreshToken);
+          console.log("✅ Token refreshed successfully!");
+
+          const finalRefreshToken =
+            newRefreshToken && newRefreshToken !== "undefined"
+              ? newRefreshToken
+              : refreshToken;
+
+          saveTokens(accessToken, finalRefreshToken);
           processQueue(failedQueue, null, accessToken);
+
           originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-          return axios(originalRequest);
+          return api(originalRequest);
         } else {
-          processQueue(failedQueue, error, null);
+          console.error("🚨 Failed to refresh token.");
+          processQueue(failedQueue, "Failed to refresh token", null);
           throw new Error("Failed to refresh token.");
         }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          // Pass the message property of the Error object, which is a string
-          processQueue(failedQueue, err.message, null);
-        } else {
-          // If it's not an instance of Error, convert err to a string
-          processQueue(failedQueue, String(err), null);
-        }
+      } catch (err) {
+        console.error("❌ Refresh token request failed. Logging out...");
+        processQueue(failedQueue, String(err), null);
+        clearTokens();
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }

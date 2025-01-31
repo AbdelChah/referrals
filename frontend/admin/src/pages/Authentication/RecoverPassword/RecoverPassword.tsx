@@ -20,9 +20,6 @@ const RecoverPassword: React.FC = () => {
     // Handle recover password logic here (e.g., API call)
     setError(""); // Reset error state
 
-    // Log values or make API call
-    console.log("Recover Password Info:", { email });
-
     // Add actual recover password API call here
   };
 

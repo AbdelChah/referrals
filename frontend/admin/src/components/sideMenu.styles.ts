@@ -1,5 +1,5 @@
 import { styled } from '@mui/system';
-import { Drawer, Typography } from '@mui/material';
+import { Drawer, Typography, ListItemButton } from '@mui/material';
 
 // Styled Drawer
 export const StyledDrawer = styled(Drawer)(({ theme }) => ({
@@ -18,4 +18,18 @@ export const MenuHeader = styled(Typography)(({ theme }) => ({
   fontSize: '1.2rem',
   color: theme.palette.primary.main,
   textAlign: 'center',
+}));
+
+// Styled ListItemButton
+export const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+  '&.Mui-selected': {
+    backgroundColor: theme.palette.primary.light,
+    color: theme.palette.primary.contrastText,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.contrastText,
+    },
+  },
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
 }));
