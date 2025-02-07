@@ -10,6 +10,7 @@ router.post('/refereeAction', referralController.refereeAction);
 router.post('/refereesStatus', referralController.getRefereesStatus);
 router.get('/getReferrals', referralController.getReferrals);
 router.get('/getReferralReport', referralController.getReferralReport);
+router.get('/activeCampaigns', getAllCampaigns);
 module.exports = router;
 
 
