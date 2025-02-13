@@ -11,16 +11,17 @@ export const StyledModal = styled(Modal)(() => ({
 export const ModalContent = styled('div')(() => ({
   position: 'relative',
   backgroundColor: 'white',
+  padding: '20px',
   borderRadius: '8px',
-  width: '400px', /* Adjust this width if needed */
-  maxWidth: '90vw', /* Ensure it's responsive */
-  maxHeight: '90vh', /* Ensure it's responsive */
+  width: '400px', 
+  maxWidth: '90vw',
+  maxHeight: '90vh',
   boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
 }));
 
 export const CloseButton = styled(IconButton)(() => ({
   position: 'absolute',
-  top: '-69px',
+  top: '10px',
   right: '10px',
   color: 'gray',
   '&:hover': {

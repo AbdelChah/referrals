@@ -41,7 +41,6 @@ const Dispute: React.FC = () => {
 
   return (
     <>
-      <Title>Dispute Management</Title>
       <Container>
         <StyledTable>
           <TableHead>

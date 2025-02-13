@@ -11,14 +11,17 @@ export const StyledDrawer = styled(Drawer)(({ theme }) => ({
   },
 }));
 
-// Menu Header
+// Menu Header with centered logo
 export const MenuHeader = styled(Typography)(({ theme }) => ({
   padding: theme.spacing(2),
-  fontWeight: 'bold',
-  fontSize: '1.2rem',
-  color: theme.palette.primary.main,
   textAlign: 'center',
 }));
+
+// Logo Image
+export const LogoImage = styled('img')({
+  maxWidth: '100px', // Adjust size as needed
+  height: 'auto',
+});
 
 // Styled ListItemButton
 export const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({

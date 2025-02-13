@@ -1,5 +1,4 @@
 import { apiCall } from "../helpers/apiCall";
-import { saveTokens } from "../helpers/tokenHelper";
 import {
   LoginRequest,
   RegisterRequest,
@@ -7,6 +6,8 @@ import {
   AuthResponse,
   OtpRequest,
 } from "../Models/Authentication";
+import { Admin } from "../Models/Admins";
+import admins from "../Models/Mock/admins.json"; 
 
 const defaultAuthResponse: AuthResponse = {
   res: false,
@@ -48,3 +49,30 @@ export const refreshTokenService = async (
   apiCall("/api/auth/refresh", "POST", { refreshToken }, defaultAuthResponse);
 
 
+  // Mock function to simulate fetching admins
+  export const fetchAdmins = async (): Promise<Admin[]> => {
+    // Here you can replace this with a call to your API once it's available
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(admins), 1000);
+    });
+  };
+
+
+// Mock function to simulate deleting an admin by id
+export const deleteAdmin = async (adminId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Simulate a delay as if calling an API
+    setTimeout(() => {
+      // Simulate deleting the admin with the given id
+      const adminIndex = admins.findIndex((admin) => admin.id === adminId);
+
+      if (adminIndex !== -1) {
+        admins.splice(adminIndex, 1);
+        resolve();
+      } else {
+        reject(new Error("Admin not found"));
+      }
+    }, 1000);
+  });
+};
+  

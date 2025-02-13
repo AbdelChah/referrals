@@ -1,123 +1,257 @@
-import React, { useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { Title } from "../../styles/title.styles"; // Assuming Title is styled
-import * as Yup from "yup";
-import { Formik, Field, Form } from "formik"; // Use Formik directly for form handling
-import { toast } from "react-toastify";
-import { registerService } from "../../services/authenticationService"; // Import registerService
-import { RegisterRequest } from "../../Models/Authentication"; // Import the type for the request
-
-// Validation schema for the form
-const validationSchema = Yup.object({
-  username: Yup.string().required("Username is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
-  email: Yup.string()
-    .email("Invalid email address")
-    .required("Email is required"),
-});
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  StyledTable as Table,
+  StyledTableRow as TableRow,
+  TableHeaderCell as TableHeader,
+  StyledTableCell as TableCell,
+  StyledButton,
+  Container,
+  StyledFab,
+  SortIconContainer,
+  TableHeaderContainer,
+} from "../../styles/table.styles";
+import { Admin } from "../../Models/Admins"; // Assuming you have an Admin model
+import { fetchAdmins, deleteAdmin } from "../../services/authenticationService";
+import AdminModal from "./AddAdminModal"; // Assuming this is your modal component
+import { TablePagination, Tooltip, TextField, Box } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material"; // For sorting icons
+import LoadingView from "../../components/LoadingView";
+import { FormikValues } from "formik";
+import { Menu, MenuItem, IconButton } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const AdminSettings: React.FC = () => {
-  const [admins, setAdmins] = useState<{ username: string; email: string }[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Admin;
+    direction: "asc" | "desc";
+  }>({
+    key: "username", // Sort by username by default
+    direction: "asc",
+  });
 
-  // Handle form submission for registering a new admin
-  const handleRegisterAdmin = async (values: { username: string; password: string; email: string }) => {
-    setLoading(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    admin: Admin
+  ) => {
+    event.stopPropagation(); // Prevent row click event
+    setAnchorEl(event.currentTarget);
+    setSelectedAdmin(admin);
+  };
+
+  const handleMenuClose = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setAnchorEl(null);
+  };
+
+  const loadAdmins = useCallback(async () => {
     try {
-      // Create the data object for the API call
-      const data: RegisterRequest = {
-        username: values.username,
-        password: values.password,
-        email: values.email,
-      };
-
-      // Call the registerService from authenticationService
-      await registerService(data);
-      setAdmins([...admins, { username: values.username, email: values.email }]); // Add new admin to the list
-      toast.success(`${values.username} added successfully`, {
-        hideProgressBar: true,
-      });
+      const fetchedAdmins = await fetchAdmins(); // Fetch admins
+      setAdmins(fetchedAdmins);
     } catch (error) {
-      console.error("Error registering admin:", error);
-      toast.error(`Failed to register new admin: ${error}`);
+      console.error("Error loading admins:", error);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadAdmins();
+  }, [loadAdmins]);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    loadAdmins();
+  };
+
+  const handleDelete = async (adminId: string) => {
+    try {
+      await deleteAdmin(adminId); // Delete admin
+      loadAdmins();
+    } catch (error) {
+      console.error("Error deleting admin:", error);
+    }
+  };
+
+  const handleSort = (key: keyof Admin) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      admin.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedAdmins = [...filteredAdmins].sort((a, b) => {
+    const getValue = (admin: Admin, key: keyof Admin) => admin[key] ?? ""; // Use an empty string if value is undefined
+
+    const aValue = getValue(a, sortConfig.key);
+    const bValue = getValue(b, sortConfig.key);
+
+    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const paginatedAdmins = sortedAdmins.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  const handlePageChange = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  if (loading) {
+    return <LoadingView />;
+  }
+
+  const handleFabClick = () => {
+    setIsModalOpen(true); // Open the modal
   };
 
   return (
-    <Box>
-      <Title>Admin Management</Title>
+    <>
+      <Container>
+        <Box display="flex" gap={2} mb={2} alignItems="center">
+          <Box flex="3">
+            <TextField
+              label="Search by Username or Email"
+              variant="outlined"
+              fullWidth
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </Box>
+        </Box>
 
-      {/* Form for Registering Admin */}
-      <Formik
-        initialValues={{ username: "", password: "", email: "" }}
-        validationSchema={validationSchema}
-        onSubmit={handleRegisterAdmin}
-      >
-        {({ errors, touched, handleChange, handleBlur, values }) => (
-          <Form>
-            <Box
-              display="flex"
-              flexDirection="column"
-              gap="20px"
-              maxWidth="500px"
-              margin="0 auto"
-              padding="20px"
-              border="1px solid #ccc"
-              borderRadius="8px"
-            >
-              <TextField
-                label="Username"
-                variant="outlined"
-                name="username"
-                value={values.username}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.username && Boolean(errors.username)}
-                helperText={touched.username && errors.username}
-                fullWidth
-              />
-              <TextField
-                label="Email"
-                variant="outlined"
-                name="email"
-                type="email"
-                value={values.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.email && Boolean(errors.email)}
-                helperText={touched.email && errors.email}
-                fullWidth
-              />
-              <TextField
-                label="Password"
-                variant="outlined"
-                name="password"
-                type="password"
-                value={values.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.password && Boolean(errors.password)}
-                helperText={touched.password && errors.password}
-                fullWidth
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                disabled={loading}
-                fullWidth
-              >
-                {loading ? "Registering..." : "Add Admin"}
-              </Button>
-            </Box>
-          </Form>
-        )}
-      </Formik>
-    </Box>
+        <Table>
+          <thead>
+            <TableRow cursor="default">
+              <TableHeader>
+                <TableHeaderContainer onClick={() => handleSort("username")}>
+                  Username
+                  {sortConfig.key === "username" && (
+                    <SortIconContainer>
+                      {sortConfig.direction === "asc" ? (
+                        <ArrowUpward fontSize="small" />
+                      ) : (
+                        <ArrowDownward fontSize="small" />
+                      )}
+                    </SortIconContainer>
+                  )}
+                </TableHeaderContainer>
+              </TableHeader>
+              <TableHeader>
+                <TableHeaderContainer onClick={() => handleSort("email")}>
+                  Email
+                  {sortConfig.key === "email" && (
+                    <SortIconContainer>
+                      {sortConfig.direction === "asc" ? (
+                        <ArrowUpward fontSize="small" />
+                      ) : (
+                        <ArrowDownward fontSize="small" />
+                      )}
+                    </SortIconContainer>
+                  )}
+                </TableHeaderContainer>
+              </TableHeader>
+              <TableHeader>
+                <TableHeaderContainer>Actions</TableHeaderContainer>
+              </TableHeader>
+            </TableRow>
+          </thead>
+
+          <tbody>
+            {paginatedAdmins.map((admin) => (
+              <TableRow key={admin.id}>
+                <TableCell>{admin.username}</TableCell>
+                <TableCell>{admin.email}</TableCell>
+                <TableCell>
+                  {/* More Actions Button */}
+                  <IconButton onClick={(e) => handleMenuOpen(e, admin)}>
+                    <MoreVertIcon />
+                  </IconButton>
+
+                  {/* Actions Menu */}
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(selectedAdmin!.id); // Delete action
+                        handleMenuClose(e);
+                      }}
+                    >
+                      <DeleteIcon style={{ marginRight: 8, color: "red" }} />{" "}
+                      Delete
+                    </MenuItem>
+                  </Menu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </tbody>
+        </Table>
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={sortedAdmins.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
+      </Container>
+
+      {/* Floating action button for adding an admin */}
+      <Tooltip title="Add new admin" arrow>
+        <StyledFab color="primary" aria-label="add" onClick={handleFabClick}>
+          <AddIcon />
+        </StyledFab>
+      </Tooltip>
+
+      {isModalOpen && (
+        <AdminModal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          onSubmit={function (values: FormikValues): void {
+            throw new Error("Function not implemented.");
+          }}
+        />
+      )}
+    </>
   );
 };
 

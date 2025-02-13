@@ -1,5 +1,12 @@
 import { styled } from "@mui/material/styles";
-import { Table, TableCell, TableRow, Button } from "@mui/material";
+import {
+  Table,
+  TableCell,
+  TableRow,
+  Button,
+  Fab,
+  Typography,
+} from "@mui/material";
 
 // Container for the entire page
 export const Container = styled("div")(({ theme }) => ({
@@ -76,4 +83,39 @@ export const StyledButton = styled(Button)(({ theme }) => ({
     color: theme.palette.action.disabled, // Disabled text color
     borderColor: theme.palette.action.disabledBackground, // Disabled border
   },
+}));
+
+export const StyledFab = styled(Fab)(({ theme }) => ({
+  position: "fixed",
+  bottom: theme.spacing(2),
+  right: theme.spacing(2),
+}));
+
+export const MessageContainer = styled(Container)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100vh",
+}));
+
+// Styled Typography for the message
+export const Message = styled(Typography)(({ theme }) => ({
+  textAlign: "center",
+  marginBottom: theme.spacing(3),
+  fontSize: "18px",
+  fontWeight: 500,
+}));
+
+
+export const TableHeaderContainer = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  cursor: "pointer",
+}));
+
+export const SortIconContainer = styled("span")(({ theme }) => ({
+  marginLeft: theme.spacing(1),
+  display: "inline-flex",
+  alignItems: "center",
 }));

@@ -13,7 +13,7 @@ import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 interface FormWrapperProps {
-  title: string;
+  title: string | React.ReactNode;
   initialValues: { [key: string]: string };
   validationSchema: any;
   onSubmit: (values: { [key: string]: string }) => void;

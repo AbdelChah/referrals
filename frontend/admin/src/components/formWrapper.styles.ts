@@ -9,27 +9,29 @@ export const FormContainer = styled(Box)<FormContainerProps>(({ theme, height })
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  height: height || "100vh", // Use the passed height prop
-  backgroundColor: theme.palette.background.default, // Use theme background color
+  height: height || "100vh",
+  minWidth: "450px",
+  backgroundColor: theme.palette.background.default,
 }));
 
 export const FormBox = styled(Box)(({ theme }) => ({
   width: '100%',
   maxWidth: '450px',
-  backgroundColor: theme.palette.background.paper, // Use theme paper background
+  backgroundColor: theme.palette.background.paper,
   padding: '30px',
   borderRadius: '8px',
-  boxShadow: theme.shadows[4], // Use theme shadow for consistency
+  boxShadow: theme.shadows[4],
+  position: 'relative'
 }));
 
 export const FormTitle = styled(Typography)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: '20px',
-  fontWeight: theme.typography.fontWeightMedium, // Use theme typography weight
+  fontWeight: theme.typography.fontWeightMedium,
 }));
 
 export const FormError = styled(Box)(({ theme }) => ({
-  color: theme.palette.error.main, // Use theme error color
+  color: theme.palette.error.main,
   marginBottom: '20px',
   textAlign: 'center',
 }));
@@ -47,16 +49,16 @@ export const StyledButton = styled(Button)(({ theme }) => ({
 export const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: '20px',
   '& .MuiInputBase-root': {
-    backgroundColor: theme.palette.background.paper, // Optional: Use theme background for input
+    backgroundColor: theme.palette.background.paper,
   },
 }));
 
-// LinkText
+
 export const LinkText = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginTop: '10px',
   '& a': {
-    color: theme.palette.primary.main, // Use theme primary color
+    color: theme.palette.primary.main,
     textDecoration: 'none',
     fontSize: '14px',
     '&:hover': {

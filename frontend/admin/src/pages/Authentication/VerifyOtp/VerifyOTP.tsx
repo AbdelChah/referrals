@@ -9,6 +9,7 @@ import {
 } from "../../../components/formWrapper.styles";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import { toast } from "react-toastify";
+import { Box } from "@mui/material";
 
 const VerifyOtp: React.FC = () => {
   const { validateOtp } = useAuthContext();
@@ -73,43 +74,53 @@ const VerifyOtp: React.FC = () => {
 
   return (
     <FormContainer>
-      <FormBox
-        component="form"
+      <Box
+        component="form" // ✅ Use a standard Box here
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit();
         }}
       >
-        <FormTitle variant="h5">Verify OTP</FormTitle>
-        {error && <FormError>{error}</FormError>}
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              type="text"
-              value={digit}
-              onChange={(e) => handleChange(e, index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              ref={(el) => {
-                inputRefs.current[index] = el;
-              }}
-              maxLength={1}
-              style={{
-                width: "40px",
-                height: "40px",
-                fontSize: "20px",
-                textAlign: "center",
-                margin: "5px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
-            />
-          ))}
-        </div>
-        <StyledButton type="submit" fullWidth disabled={loading}>
-          {loading ? "Verifying..." : "Verify OTP"}
-        </StyledButton>
-      </FormBox>
+        <FormBox>
+          <FormTitle variant="h5">Verify OTP</FormTitle>
+          {error && <FormError>{error}</FormError>}
+          <div
+            style={{ display: "flex", justifyContent: "center", gap: "10px" }}
+          >
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                type="text"
+                value={digit}
+                onChange={(e) => handleChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                maxLength={1}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  fontSize: "20px",
+                  textAlign: "center",
+                  margin: "5px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            ))}
+          </div>
+          {/* Add margin-top here */}
+          <StyledButton
+            type="submit"
+            fullWidth
+            disabled={loading}
+            sx={{ mt: 3 }}
+          >
+            {loading ? "Verifying..." : "Verify OTP"}
+          </StyledButton>
+        </FormBox>
+      </Box>
     </FormContainer>
   );
 };

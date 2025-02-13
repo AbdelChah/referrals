@@ -4,6 +4,14 @@ import FormWrapper from "../../../components/FormWrapper";
 import { FormikValues } from "formik";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { Box } from "@mui/material";
+
+const theme = import.meta.env.VITE_THEME || "default";
+
+const logoSrc =
+  theme === "bob"
+    ? "/assets/images/bob-logo.png"
+    : "/assets/images/juno_logo_horizontal.svg";
 
 const validationSchema = Yup.object({
   username: Yup.string().required("Username is required"),
@@ -14,7 +22,6 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const authContext = useAuthContext();
-  const navigate = useNavigate();
 
   const { login } = authContext;
 
@@ -34,7 +41,17 @@ const Login: React.FC = () => {
 
   return (
     <FormWrapper
-      title="Login"
+      title={
+        <>
+          <Box display="flex" justifyContent="center" mb={2}>
+            <img
+              src={logoSrc}
+              alt="Logo"
+              style={{ maxWidth: "100px", height: "auto" }}
+            />
+          </Box>
+        </>
+      }
       initialValues={{ username: "", password: "" }}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
@@ -45,12 +62,7 @@ const Login: React.FC = () => {
       buttonLabel={isLoading ? "Logging in..." : "Login"}
       errorMessage={error}
     >
-      <Link
-        to="/recover-password"
-        style={{ marginTop: "10px", display: "block", textAlign: "center" }}
-      >
-        Forgot Password?
-      </Link>
+      <Link to="/recover-password">Forgot Password?</Link>
     </FormWrapper>
   );
 };

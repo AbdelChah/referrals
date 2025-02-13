@@ -1,21 +1,33 @@
 import React, { useContext } from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { LogoWrapper } from "./Header.styles";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AuthenticationContext } from "../contexts/AuthenticationContext";
 
 const Header: React.FC = () => {
-  const theme = import.meta.env.VITE_THEME  || "default";
-
-  const logoSrc =
-    theme === "bob"
-      ? "/assets/images/bob-logo.png"
-      : "/assets/images/juno_logo_horizontal.svg";
+  const location = useLocation(); // Get the current path using useLocation hook
+  const navigate = useNavigate(); // Using useNavigate from React Router v6
 
   const context = useContext(AuthenticationContext);
   const { isAuthenticated, logout } = context || {};
 
-  const navigate = useNavigate(); // Using useNavigate from React Router v6
+  // Map paths to titles
+  const routeTitles: { [key: string]: string } = {
+    "/dashboard": "Dashboard",
+    "/campaigns": "Campaigns List",
+    "/create-campaign": "Create Campaign",
+    "/reports": "Referral Report",
+    "/disputes": "Disputes",
+    "/referrals": "Referral Status",
+    "/settings": "Settings",
+    "/admin-settings": "Admin Settings",
+    "/reset-password": "Reset Password",
+    "/verify-otp": "Verify OTP",
+    "/recover-password": "Recover Password",
+    "/login": "Login",
+    "/404": "Page Not Found", // Default title for unknown routes
+  };
+
+  const pageTitle = routeTitles[location.pathname] || "Page Not Found";
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
@@ -26,7 +38,7 @@ const Header: React.FC = () => {
     }
   };
 
-  const handlehomeAction = () => {
+  const handleHomeAction = () => {
     navigate("/campaigns");
   };
 
@@ -38,21 +50,9 @@ const Header: React.FC = () => {
     >
       <Toolbar style={{ maxWidth: "1198px", margin: "0 auto", width: "100%" }}>
         <Typography variant="h6" component="div" style={{ flexGrow: 1 }}>
-          <LogoWrapper>
-            <img src={logoSrc} alt="Logo" style={{ height: "50px" }} />
-          </LogoWrapper>
+          {/* Display the page title */}
+          <Box>{pageTitle}</Box>
         </Typography>
-
-        {/* Navigation Links */}
-        <Box>
-          <Button
-            color="inherit"
-            style={{ marginRight: "15px" }}
-            onClick={handlehomeAction}
-          >
-            Home
-          </Button>
-        </Box>
 
         {/* User Action (e.g., Login/Signup) */}
         <Button color="inherit" variant="outlined" onClick={handleAuthAction}>
