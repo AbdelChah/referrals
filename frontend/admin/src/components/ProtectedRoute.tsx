@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { AuthenticationContext } from "../contexts/AuthenticationContext";
 import { toast } from "react-toastify";
 
@@ -10,7 +10,8 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthenticationContext) || {};
   const [redirect, setRedirect] = useState<boolean>(false);
-
+  const location = useLocation();
+  
   useEffect(() => {
     if (isAuthenticated === false && !loading) {
       toast.error("You must be logged in to access this page.", {

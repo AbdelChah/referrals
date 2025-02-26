@@ -42,7 +42,7 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
       };
 
       // Call the registerService from authenticationService
-      const response = await registerService(data);
+      await registerService(data);
 
       // Notify success
       toast.success("Admin registered successfully!");
@@ -61,22 +61,22 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
 
   return (
     <StyledModal open={open} onClose={onClose} closeAfterTransition>
-        <FormWrapper
-          height="30vh"
-          initialValues={{ username: "", password: "", email: "" }}
-          validationSchema={validationSchema}
-          onSubmit={handleRegisterAdmin}
-          fields={[
-            { name: "username", label: "Username", type: "text" },
-            { name: "email", label: "Email", type: "email" },
-            { name: "password", label: "Password", type: "password" },
-          ]}
-          buttonLabel={loading ? "Registering..." : "Add Admin"}
-          onClose={onClose}
-          showCloseButton={true}
-          title="Register New Admin"
-          errorMessage={error}
-        />
+      <FormWrapper
+        height="30vh"
+        initialValues={{ username: "", password: "", email: "" }}
+        validationSchema={validationSchema}
+        onSubmit={handleRegisterAdmin}
+        fields={[
+          { name: "username", label: "Username", type: "text" },
+          { name: "email", label: "Email", type: "email" },
+          { name: "password", label: "Password", type: "password" },
+        ]}
+        buttonLabel={loading ? "Registering..." : "Add Admin"}
+        onClose={onClose}
+        showCloseButton={true}
+        title="Register New Admin"
+        errorMessage={error}
+      />
     </StyledModal>
   );
 };

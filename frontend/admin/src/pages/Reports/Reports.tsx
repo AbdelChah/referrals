@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { ListItemIcon, ListItemText, Paper } from "@mui/material";
+import { ListItemIcon, ListItemText } from "@mui/material";
 import {
   StyledTable as Table,
   StyledTableRow as TableRow,
   TableHeaderCell as TableHead,
   StyledTableCell as TableCell,
-  StyledButton,
   Container,
   StyledFab,
 } from "../../styles/table.styles";

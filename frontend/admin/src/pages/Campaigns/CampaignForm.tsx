@@ -56,7 +56,7 @@ const CampaignForm: React.FC = () => {
     };
 
     fetchTransactionTypes();
-  }, []);
+  }, [application]);
 
   const formik = useFormik({
     initialValues: {

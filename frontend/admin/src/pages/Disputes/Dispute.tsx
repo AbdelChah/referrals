@@ -9,7 +9,6 @@ import {
 import { StyledButton } from "../../styles/button.styles";
 
 import { TableBody, TableHead, TableRow, TablePagination } from "@mui/material";
-import { Title } from "../../styles/title.styles";
 import disputes from "../../Models/Mock/disputes.json";
 
 const Dispute: React.FC = () => {

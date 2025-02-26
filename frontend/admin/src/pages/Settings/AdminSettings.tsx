@@ -4,7 +4,6 @@ import {
   StyledTableRow as TableRow,
   TableHeaderCell as TableHeader,
   StyledTableCell as TableCell,
-  StyledButton,
   Container,
   StyledFab,
   SortIconContainer,

@@ -1,7 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardTitle } from './dashboard.styles';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import {getPerformanceMetrics} from '../../services/dashboardService';
+import React, { useEffect, useState } from "react";
+import { Card, CardTitle } from "./dashboard.styles";
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
+import { getPerformanceMetrics } from "../../services/dashboardService";
 
 interface PerformanceData {
   totalReferrals: number;
@@ -10,7 +19,6 @@ interface PerformanceData {
   conversionRate: number | null;
   averageReferralValue: number;
 }
-
 
 const PerformanceGraphs: React.FC = () => {
   const [metrics, setMetrics] = useState<PerformanceData | null>(null);
@@ -21,15 +29,18 @@ const PerformanceGraphs: React.FC = () => {
         setMetrics(response.data);
       })
       .catch((error) => {
-        console.error('Error fetching performance metrics:', error);
+        console.error("Error fetching performance metrics:", error);
       });
   }, []);
   if (!metrics) {
     return <div>Loading...</div>;
   }
   const chartData = [
-    { name: 'Total Referrals', value: metrics.totalReferrals },
-    { name: 'Total Rewards Distributed', value: metrics.totalRewardsDistributed },
+    { name: "Total Referrals", value: metrics.totalReferrals },
+    {
+      name: "Total Rewards Distributed",
+      value: metrics.totalRewardsDistributed,
+    },
   ];
   return (
     <Card>

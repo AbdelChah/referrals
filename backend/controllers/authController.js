@@ -539,3 +539,30 @@ exports.resetPassword = async (req, res) => {
         );
     }
 };
+
+
+// Get all admins
+exports.getAllAdmins = async (req, res) => {
+    try {
+      const admins = await Admin.find({}, {
+        username: 1,
+        email: 1,
+        created_at: 1
+      });
+      res.status(200).json({
+        res: true,
+        response: admins
+      });
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+      res.status(500).json({
+        res: false,
+        responseError: {
+          msg: 'Internal server error.',
+          errCode: '19183',
+          msgAPI: 'Failed to fetch admins.'
+        }
+      });
+    }
+  };
+  

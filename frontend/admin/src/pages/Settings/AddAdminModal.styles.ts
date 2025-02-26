@@ -1,4 +1,4 @@
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 import { IconButton, Modal } from '@mui/material';
 
 export const StyledModal = styled(Modal)(() => ({

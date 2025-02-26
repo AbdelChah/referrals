@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAccessToken, getRefreshToken, clearTokens, saveTokens } from '../helpers/tokenHelper';
+import {  getRefreshToken, clearTokens, saveTokens } from '../helpers/tokenHelper';
 import api from '../services/axiosInstance';
 
 const AuthenticationInterceptor = () => {

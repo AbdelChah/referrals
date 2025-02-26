@@ -38,9 +38,6 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleHomeAction = () => {
-    navigate("/campaigns");
-  };
 
   return (
     <AppBar

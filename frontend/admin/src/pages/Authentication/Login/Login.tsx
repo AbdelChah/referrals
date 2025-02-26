@@ -3,7 +3,7 @@ import * as Yup from "yup";
 import FormWrapper from "../../../components/FormWrapper";
 import { FormikValues } from "formik";
 import { useAuthContext } from "../../../hooks/useAuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Box } from "@mui/material";
 
 const theme = import.meta.env.VITE_THEME || "default";

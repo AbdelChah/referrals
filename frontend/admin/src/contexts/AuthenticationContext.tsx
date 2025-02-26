@@ -38,7 +38,6 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [authChecked, setAuthChecked] = useState<boolean>(false); // Flag to ensure effect runs only once
   const navigate = useNavigate();
   const location = useLocation(); // To check the current path
 
@@ -48,7 +47,12 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
   useEffect(() => {
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
-    if (accessToken && refreshToken && accessToken!="undefined" && refreshToken !=="undefined") {
+    if (
+      accessToken &&
+      refreshToken &&
+      accessToken !== "undefined" &&
+      refreshToken !== "undefined"
+    ) {
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);

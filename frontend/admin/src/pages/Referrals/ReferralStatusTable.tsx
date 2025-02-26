@@ -183,7 +183,7 @@ const ReferralStatusTable: React.FC = () => {
                   )}
                 </TableHeaderContainer>
               </TableHeaderCell>
-              <TableHeaderCell>Actions</TableHeaderCell>{" "}
+              <TableHeaderCell>Actions</TableHeaderCell>
             </StyledTableRow>
           </TableHead>
           <TableBody>
@@ -250,11 +250,11 @@ const ReferralStatusTable: React.FC = () => {
                       open={Boolean(anchorEl)}
                       onClose={handleMenuClose}
                     >
-                      <MenuItem 
-                       onClick={(e) => {
-                        handleMenuClose(e);
-                        handleViewDetails();
-                      }}
+                      <MenuItem
+                        onClick={(e) => {
+                          handleMenuClose(e);
+                          handleViewDetails();
+                        }}
                       >
                         <ListItemIcon>
                           <VisibilityIcon fontSize="small" />

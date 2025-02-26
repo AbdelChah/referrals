@@ -694,6 +694,52 @@ exports.refereeAction = async (req, res) => {
     }
   };
   
+
+  // Get active campaigns for specific Application
+  exports.getActiveCampaigns = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const activeCampaigns = await Campaign.find(
+      {
+        start_date: { $lte: currentDate },
+        end_date: { $gte: currentDate }
+      },
+      {
+        campaign_id: 1,
+        name: 1,
+        end_date: 1,
+        min_referees: 1,
+        reward_criteria: 1
+      }
+    );
+
+    // Format each campaign to match the required response format
+    const formattedCampaigns = activeCampaigns.map(campaign => ({
+      id: campaign._id,
+      referralCampaignTitle: campaign.name,
+      // Generate a description dynamically based on the campaign details.
+      // This example uses the campaign name, min_referees, reward_amount, and currency.
+      referralCampaignDesc: `Share ${campaign.name} with ${campaign.min_referees} friend${campaign.min_referees > 1 ? 's' : ''} and earn ${campaign.reward_criteria.currency}${campaign.reward_criteria.reward_amount} for yourself`,
+      referralCampaignExpires: campaign.end_date
+    }));
+
+    res.status(200).json({
+      res: true,
+      response: formattedCampaigns
+    });
+  } catch (error) {
+    console.error('Error fetching active campaigns:', error);
+    res.status(500).json({
+      res: false,
+      responseError: {
+        msg: 'System Error...',
+        errCode: '19182',
+        msgAPI: 'System Error...'
+      }
+    });
+  }
+};
+
   
   
   

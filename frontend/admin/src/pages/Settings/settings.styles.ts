@@ -1,4 +1,4 @@
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 import { Box, Card, Button, Typography } from '@mui/material';
 
 export const Container = styled(Box)(() => ({

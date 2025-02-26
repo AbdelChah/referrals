@@ -1,4 +1,4 @@
-import { styled } from '@mui/system';
+import { styled } from '@mui/material/styles';
 import { Drawer, Typography, ListItemButton } from '@mui/material';
 
 // Styled Drawer

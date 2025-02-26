@@ -16,7 +16,7 @@ const RecoverPassword: React.FC = () => {
   // Handle submit
   const handleSubmit = (values: FormikValues) => {
     const { email } = values;
-
+    console.log({ email });
     // Handle recover password logic here (e.g., API call)
     setError(""); // Reset error state
 

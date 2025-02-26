@@ -19,7 +19,11 @@ interface UserDetailModalProps {
   user: any; // User data passed as a prop
 }
 
-const UserDetailModal: React.FC<UserDetailModalProps> = ({ open, onClose, user }) => {
+const UserDetailModal: React.FC<UserDetailModalProps> = ({
+  open,
+  onClose,
+  user,
+}) => {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>User Details</DialogTitle>
@@ -31,7 +35,13 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ open, onClose, user }
                 Referrer Phone: {user.referrer_phone}
               </Typography>
               {user.campaigns.map((campaign: any) => (
-                <Accordion key={campaign.campaignId} defaultExpanded>
+                <Accordion
+                  key={
+                    campaign.campaignId ||
+                    `${campaign.campaignName}-${campaign.index}`
+                  }
+                  defaultExpanded
+                >
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography variant="subtitle1">
                       {campaign.campaignName}{" "}
@@ -48,7 +58,8 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ open, onClose, user }
                       </Typography>
                       <Typography variant="body2">
                         <strong>Total Qualified Referees:</strong>{" "}
-                        {campaign.totalQualifiedReferees}/{campaign.min_referees}
+                        {campaign.totalQualifiedReferees}/
+                        {campaign.min_referees}
                       </Typography>
                     </Box>
 

@@ -4,7 +4,6 @@ import {
   FormBox,
   FormTitle,
   StyledButton,
-  StyledTextField,
   FormError,
 } from "../../../components/formWrapper.styles";
 import { useAuthContext } from "../../../hooks/useAuthContext";
