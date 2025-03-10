@@ -2,16 +2,15 @@ services:
   percona:
     image: percona/percona-server-mongodb:latest
     container_name: percona
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-      - ./mongo-keyfile:/etc/mongo-keyfile:ro  # Mount the keyfile
     networks:
-      - referral_network
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--auth", "--keyFile", "/etc/mongo-keyfile"]
-
+      - referral-network
   backend:
     build:
       context: ./backend
