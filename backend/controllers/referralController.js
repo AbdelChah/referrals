@@ -4,6 +4,38 @@ const Campaign = require('../models/Campaign');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 
+
+/**
+ * Success Response Formatter
+ * @param {String} message - Success message
+ * @param {Object} data - Optional data to include in the response
+ * @returns {Object} - Formatted success response
+ */
+const formatSuccessResponse = (message, data = {}) => ({
+  res: true,
+  response: {
+      msg: message,
+      data,
+  },
+});
+
+/**
+* Error Response Formatter
+* @param {String} msg - Error message
+* @param {String} errCode - Application-specific error code
+* @param {String} msgAPI - API-specific error message
+* @returns {Object} - Formatted error response
+*/
+const formatErrorResponse = (msg, errCode, msgAPI) => ({
+  res: false,
+  responseError: {
+      msg,
+      errCode,
+      msgAPI,
+  },
+});
+
+
 // Fetch multivalues dynamically
 const fetchMultivalues = async () => {
     try {
@@ -72,174 +104,157 @@ const generateReferralCode = (referrer, campaignName) => {
 // Generate referral code
 exports.generateReferralCode = async (req, res) => {
   try {
-      const { application, referrer } = req.body;
+    const { application, referrer } = req.body;
 
-      // Validate input
-      if (!application || !referrer ) {
-          return res.status(400).json({
-              res: false,
-              responseError: {
-                  msg: 'Application, referrer, and campaign name are required.',
-                  errCode: '19181',
-                  msgAPI: 'Missing required fields.',
-              },
-          });
-      }
+    // Validate input
+    if (!application || !referrer) {
+      return res
+        .status(400)
+        .json(formatErrorResponse(
+          'Application, referrer, and campaign name are required.',
+          '19181',
+          'Missing required fields.'
+        ));
+    }
 
-      // Fetch multivalues
-      const multivalues = await fetchMultivalues(); // Assuming fetchMultivalues is defined
-      const validApplications = multivalues.response.application.values.map(item => item.id);
+    // Fetch multivalues
+    const multivalues = await fetchMultivalues();
+    const validApplications = multivalues.response.application.values.map(item => item.id);
 
-      // Validate application
-      if (!validApplications.includes(application)) {
-          return res.status(400).json({
-              res: false,
-              responseError: {
-                  msg: 'Invalid application.',
-                  errCode: '19186',
-                  msgAPI: `Supported applications: ${validApplications.join(', ')}.`,
-              },
-          });
-      }
+    // Validate application
+    if (!validApplications.includes(application)) {
+      return res
+        .status(400)
+        .json(formatErrorResponse(
+          'Invalid application.',
+          '19186',
+          `Supported applications: ${validApplications.join(', ')}.`
+        ));
+    }
 
-      // Check for active campaign
-      const activeCampaign = await Campaign.findOne();
-      if (!activeCampaign) {
-          return res.status(404).json({
-              res: false,
-              responseError: {
-                  msg: 'No active campaign found.',
-                  errCode: '19182',
-                  msgAPI: 'Campaign not found or inactive.',
-              },
-          });
-      }
+    // Check for active campaign
+    const activeCampaign = await Campaign.findOne();
+    if (!activeCampaign) {
+      return res
+        .status(404)
+        .json(formatErrorResponse(
+          'No active campaign found.',
+          '19182',
+          'Campaign not found or inactive.'
+        ));
+    }
 
-      // Check if a referral already exists for this referrer and campaign
-      const existingReferral = await Referral.findOne({
-          referrer_phone: referrer,
-          campaign_id: activeCampaign._id,
-      });
-      if (existingReferral) {
-          return res.status(409).json({
-              res: false,
-              responseError: {
-                  msg: 'Referral code already exists for this campaign and referrer.',
-                  errCode: '19187',
-                  msgAPI: 'Duplicate referral code for the same campaign and referrer.',
-              },
-          });
-      }
+    // Check if a referral already exists for this referrer and campaign
+    const existingReferral = await Referral.findOne({
+      referrer_phone: referrer,
+      campaign_id: activeCampaign._id,
+    });
+    if (existingReferral) {
+      return res
+        .status(409)
+        .json(formatErrorResponse(
+          'Referral code already exists for this campaign and referrer.',
+          '19187',
+          'Duplicate referral code for the same campaign and referrer.'
+        ));
+    }
 
-      // Generate a unique referral code
-      const referralCode = generateReferralCode(referrer, activeCampaign.name);
+    // Generate a unique referral code
+    const referralCode = generateReferralCode(referrer, activeCampaign.name);
 
-      // Save the referral with an empty referees array
-      const newReferral = new Referral({
-          campaign_id: activeCampaign._id,
-          referrer_phone: referrer,
-          referral_code: referralCode,
-          application,
-          referees: [], // Initialize with an empty array
-      });
+    // Save the referral with an empty referees array
+    const newReferral = new Referral({
+      campaign_id: activeCampaign._id,
+      referrer_phone: referrer,
+      referral_code: referralCode,
+      application,
+      referees: [],
+    });
 
-      await newReferral.save();
+    await newReferral.save();
 
-      return res.status(200).json({
-          res: true,
-          response: {
-              referralId: referralCode,
-          },
-      });
+    return res
+      .status(200)
+      .json(formatSuccessResponse('Referral code generated successfully.', { referralId: referralCode }));
   } catch (error) {
-      console.error('Error generating referral code:', error.message);
-      return res.status(500).json({
-          res: false,
-          responseError: {
-              msg: 'System Error.',
-              errCode: '19183',
-              msgAPI: 'Failed to generate referral code.',
-          },
-      });
+    console.error('Error generating referral code:', error.message);
+    return res
+      .status(500)
+      .json(formatErrorResponse(
+        'System Error.',
+        '19183',
+        'Failed to generate referral code.'
+      ));
   }
 };
 
 // Validate referral code
 exports.validateReferralCode = async (req, res) => {
-    try {
-        const { application, referrer, referralId } = req.body;
+  try {
+    const { application, referrer, referralId } = req.body;
 
-        // Validate input
-        if (!application || !referrer || !referralId) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Application, referrer, and referralId are required.',
-                    errCode: '19181',
-                    msgAPI: 'Missing required fields.',
-                },
-            });
-        }
-
-        // Fetch and validate multivalues
-        const multivalues = await fetchMultivalues();
-        const validApplications = multivalues.response.application.values.map(item => item.id);
-
-        if (!validApplications.includes(application)) {
-            return res.status(400).json({
-                res: false,
-                responseError: {
-                    msg: 'Invalid application.',
-                    errCode: '19186',
-                    msgAPI: `Supported applications: ${validApplications.join(', ')}.`,
-                },
-            });
-        }
-
-        // Check if the referralId exists
-        const referral = await Referral.findOne({ referral_code: referralId });
-        if (!referral) {
-            return res.status(404).json({
-                res: false,
-                responseError: {
-                    msg: 'Referral code does not exist.',
-                    errCode: '19182',
-                    msgAPI: 'Invalid referral code.',
-                },
-            });
-        }
-
-        // Check if the referrer matches
-        if (referral.referrer_phone !== referrer) {
-            return res.status(403).json({
-                res: false,
-                responseError: {
-                    msg: 'Referrer does not match referralId.',
-                    errCode: '19184',
-                    msgAPI: `The referralId ${referralId} is not associated with referrer ${referrer}.`,
-                },
-            });
-        }
-
-        // Referral code is active
-        return res.status(200).json({
-            res: true,
-            response: {
-                msg: 'Referral code is active',
-                isReferralIdValid : true
-            },
-        });
-    } catch (error) {
-        console.error('Error validating referral code:', error.message);
-        return res.status(500).json({
-            res: false,
-            responseError: {
-                msg: 'System Error.',
-                errCode: '19183',
-                msgAPI: 'Failed to validate referral code.',
-            },
-        });
+    // Validate input
+    if (!application || !referrer || !referralId) {
+      return res
+        .status(400)
+        .json(formatErrorResponse(
+          'Application, referrer, and referralId are required.',
+          '19181',
+          'Missing required fields.'
+        ));
     }
+
+    // Fetch and validate multivalues
+    const multivalues = await fetchMultivalues();
+    const validApplications = multivalues.response.application.values.map(item => item.id);
+
+    if (!validApplications.includes(application)) {
+      return res
+        .status(400)
+        .json(formatErrorResponse(
+          'Invalid application.',
+          '19186',
+          `Supported applications: ${validApplications.join(', ')}.`
+        ));
+    }
+
+    // Check if the referralId exists
+    const referral = await Referral.findOne({ referral_code: referralId });
+    if (!referral) {
+      return res
+        .status(404)
+        .json(formatErrorResponse(
+          'Referral code does not exist.',
+          '19182',
+          'Invalid referral code.'
+        ));
+    }
+
+    // Check if the referrer matches
+    if (referral.referrer_phone !== referrer) {
+      return res
+        .status(403)
+        .json(formatErrorResponse(
+          'Referrer does not match referralId.',
+          '19184',
+          `The referralId ${referralId} is not associated with referrer ${referrer}.`
+        ));
+    }
+
+    // Referral code is active
+    return res
+      .status(200)
+      .json(formatSuccessResponse('Referral code is active', { isReferralIdValid: true }));
+  } catch (error) {
+    console.error('Error validating referral code:', error.message);
+    return res
+      .status(500)
+      .json(formatErrorResponse(
+        'System Error.',
+        '19183',
+        'Failed to validate referral code.'
+      ));
+  }
 };
 
 //Import Actions 
@@ -389,7 +404,7 @@ exports.refereeAction = async (req, res) => {
           } else {
             // transaction_type is empty => no typed transaction requirement
             // => we skip setting transaction_type to true
-            // or you could automatically set it to true, depending on your logic.
+            // or automatically set it to true, depending logic.
           }
         }
       }
@@ -458,7 +473,7 @@ exports.refereeAction = async (req, res) => {
     }
   };
 
-  exports.getRefereesStatus = async (req, res) => {
+exports.getRefereesStatus = async (req, res) => {
     try {
       const { application, referrer, referralId } = req.body;
   
@@ -533,7 +548,7 @@ exports.refereeAction = async (req, res) => {
     }
   };
 
-  exports.getReferrals = async (req, res) => {
+exports.getReferrals = async (req, res) => {
     try {
       // 1) Fetch all referrals, populating the 'campaign_id' reference
       const referrals = await Referral.find({}).populate('campaign_id');
@@ -602,7 +617,7 @@ exports.refereeAction = async (req, res) => {
   };
   
 
-  exports.getReferralReport = async (req, res) => {
+exports.getReferralReport = async (req, res) => {
     try {
       // Fetch all referrals and populate the related campaigns
       const referrals = await Referral.find({}).populate('campaign_id').lean();
@@ -695,8 +710,8 @@ exports.refereeAction = async (req, res) => {
   };
   
 
-  // Get active campaigns for specific Application
-  exports.getActiveCampaigns = async (req, res) => {
+// Get active campaigns for specific Application
+exports.getActiveCampaigns = async (req, res) => {
   try {
     const currentDate = new Date();
     const activeCampaigns = await Campaign.find(

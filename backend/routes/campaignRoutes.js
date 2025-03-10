@@ -11,5 +11,7 @@ router.get('/:campaignId', authenticateToken, campaignController.getCampaignById
 router.get('/:campaignId/export', authenticateToken, campaignController.exportCampaignCsv); // Export campaign report as CSV
 router.put('/:campaignId', authenticateToken, campaignController.updateCampaign); // Update a campaign
 router.delete('/:campaignId', authenticateToken, campaignController.deleteCampaign); // Delete a campaign
+router.post('/:campaignId/pause', authenticateToken, campaignController.pauseCampaign);
+router.post('/:campaignId/resume', authenticateToken, campaignController.resumeCampaign);
 
 module.exports = router;

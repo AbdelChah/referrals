@@ -48,7 +48,7 @@ const campaignSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'completed'],
+    enum: ['active', 'inactive', 'completed', 'paused'],
     required: true,
   },
   created_at: {
@@ -59,6 +59,8 @@ const campaignSchema = new Schema({
 
 // Add a virtual to dynamically compute `status`
 campaignSchema.virtual('dynamicStatus').get(function () {
+  if (this.status === 'paused') return 'paused'; // Respect the "paused" status
+
   const currentDate = new Date();
   if (currentDate >= this.start_date && currentDate <= this.end_date) {
     return 'active';
@@ -67,6 +69,7 @@ campaignSchema.virtual('dynamicStatus').get(function () {
   }
   return 'inactive';
 });
+
 
 // Ensure `dynamicStatus` is included when converting to JSON
 campaignSchema.set('toJSON', { virtuals: true });

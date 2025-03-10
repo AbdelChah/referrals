@@ -19,6 +19,7 @@ router.post('/refresh', refreshToken); // Refresh access token
 router.post('/verifyOTP', verifyOtp); // Verify OTP
 router.post('/resetPassword',authenticateToken, resetPassword); // Reset password -- OTP sent to email
 router.get('/getAdmins', authenticateToken, getAllAdmins); // Get all admins
+
 // Protected routes (require valid access token)
 router.post('/logout', authenticateToken, logout); // Admin logout
 

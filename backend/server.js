@@ -35,10 +35,8 @@ app.use(cors({
 
 app.use(express.json()); // Parse incoming JSON requests
 
-// Public routes (no authentication required)
+// routes
 app.use('/api/auth', authRoutes);
-
-
 app.use('/apiCallbacks/juno', referralRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/referrals', referralRoutes);

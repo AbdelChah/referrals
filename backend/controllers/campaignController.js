@@ -1,6 +1,7 @@
 /*******************************
  * controllers/campaignController.js
  ******************************/
+
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const Campaign = require('../models/Campaign');
@@ -64,6 +65,20 @@ const computeCampaignStatus = (start_date, end_date) => {
   return 'inactive';
 };
 
+
+
+/**
+ * Creates a new referral campaign with specified criteria and rewards
+ * @param {Object} req - Express request object containing campaign details
+ * @param {Object} req.body - Request body containing campaign configuration
+ * @param {string} req.body.name - Name of the campaign
+ * @param {string} req.body.start_date - Start date of the campaign
+ * @param {string} req.body.end_date - End date of the campaign
+ * @param {number} req.body.min_referees - Minimum number of referees required
+ * @param {Object} req.body.reward_criteria - Criteria for rewards
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with created campaign ID or error message
+ */
 exports.createCampaign = async (req, res) => {
   try {
     // Fetch valid values from the remote endpoint
@@ -216,38 +231,64 @@ exports.createCampaign = async (req, res) => {
       }
     }
 
-    // Validate start/end dates
-    if (new Date(start_date) >= new Date(end_date)) {
-      return res.status(400).json({
-        res: false,
-        responseError: {
-          msg: 'Start date must be earlier than end date.',
-          errCode: '19182',
-          msgAPI: 'Invalid date range.',
-        },
-      });
-    }
-    
+   // Validate start/end dates
+const today = new Date();
+
+if (new Date(start_date) >= new Date(end_date)) {
+  return res.status(400).json({
+    res: false,
+    responseError: {
+      msg: 'Start date must be earlier than end date.',
+      errCode: '19182',
+      msgAPI: 'Invalid date range.',
+    },
+  });
+}
+
+// Check if both start and end date are in the past
+if (new Date(start_date) < today && new Date(end_date) < today) {
+  return res.status(400).json({
+    res: false,
+    responseError: {
+      msg: 'Both start and end dates are in the past. Campaign would be already completed.',
+      errCode: '19184',
+      msgAPI: 'Invalid campaign dates.',
+    },
+  });
+}
+
+
     // *********************************
     // REMOVED CHECK FOR UNIQUE ACTIVE CAMPAIGN
     // *********************************
 
 
     const finalStatus = computeCampaignStatus(start_date, end_date);
-    if (finalStatus === 'active') {
-      const activeCampaign = await Campaign.findOne({ status: 'active' });
-      if (activeCampaign) {
-        return res.status(400).json({
-          res: false,
-          responseError: {
-            msg: 'An active campaign already exists. Only one active campaign at a time.',
-            errCode: '19186',
-            msgAPI: 'Duplicate active campaign.',
-          },
-        });
-      }
-    }
+    // if (finalStatus === 'active') {
+    //   const activeCampaign = await Campaign.findOne({ status: 'active' });
+    //   if (activeCampaign) {
+    //     return res.status(400).json({
+    //       res: false,
+    //       responseError: {
+    //         msg: 'An active campaign already exists. Only one active campaign at a time.',
+    //         errCode: '19186',
+    //         msgAPI: 'Duplicate active campaign.',
+    //       },
+    //     });
+    //   }
+    // }
 
+    const existingCampaign = await Campaign.findOne({ name: name.trim() });
+    if (existingCampaign) {
+      return res.status(400).json({
+        res: false,
+        responseError: {
+          msg: 'A campaign with this name already exists.',
+          errCode: '19187',
+          msgAPI: 'Duplicate campaign name.',
+        },
+      });
+    }
 
 
     // Prepare the new Campaign
@@ -290,8 +331,12 @@ exports.createCampaign = async (req, res) => {
 };
 
 
-
-// Get all campaigns
+/**
+ * Retrieves all campaigns from the database
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with array of all campaigns or error message
+ */
 exports.getAllCampaigns = async (req, res) => {
   try {
     const campaigns = await Campaign.find({}, {
@@ -320,8 +365,14 @@ exports.getAllCampaigns = async (req, res) => {
   }
 };
 
-
-// Get a campaign by ID
+/**
+ * Retrieves a specific campaign by its ID
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.campaignId - ID of the campaign to retrieve
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with campaign details or error message
+ */
 exports.getCampaignById = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -338,7 +389,15 @@ exports.getCampaignById = async (req, res) => {
   }
 };
 
-// Update a campaign
+/**
+ * Updates an existing campaign by its ID
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.campaignId - ID of the campaign to update
+ * @param {Object} req.body - Updated campaign data
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with updated campaign details or error message
+ */
 exports.updateCampaign = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -361,7 +420,14 @@ exports.updateCampaign = async (req, res) => {
   }
 };
 
-// Delete a campaign
+/**
+ * Deletes a campaign by its ID
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.campaignId - ID of the campaign to delete
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with success message or error message
+ */
 exports.deleteCampaign = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -377,7 +443,7 @@ exports.deleteCampaign = async (req, res) => {
         msg: 'Campaign deleted successfully.',
       },
     });
-    
+
   } catch (error) {
     console.error('Error deleting campaign:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -385,7 +451,12 @@ exports.deleteCampaign = async (req, res) => {
 };
 
 
-//get metadata
+/**
+ * Retrieves metadata and statistics for all campaigns
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with campaign metadata including referral statistics or error message
+ */
 exports.getMetaData = async (req, res) => {
   try {
     // Fetch all campaigns with their associated referrals
@@ -451,7 +522,14 @@ exports.getMetaData = async (req, res) => {
   }
 };
 
-
+/**
+ * Exports campaign data to CSV format
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.campaignId - ID of the campaign to export
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with CSV data and campaign statistics or error message
+ */
 exports.exportCampaignCsv = async (req, res) => {
   try {
     const { campaignId } = req.params;
@@ -534,6 +612,131 @@ exports.exportCampaignCsv = async (req, res) => {
         msg: 'Failed to export campaign data.',
         errCode: '19201',
         msgAPI: 'System error while exporting campaign report.',
+      },
+    });
+  }
+};
+
+
+/**
+ * Pauses an active campaign
+ * @param {Object} req - Express request object
+ * @param {string} req.params.id - Campaign ID to pause
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with success message or error
+ */
+exports.pauseCampaign = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+
+    // Find the campaign by ID
+    const campaign = await Campaign.findOne({ campaign_id: campaignId });
+
+    if (!campaign) {
+      return res.status(404).json({
+        res: false,
+        responseError: {
+          msg: 'Campaign not found.',
+          errCode: '19187',
+          msgAPI: 'Campaign not found.',
+        },
+      });
+    }
+
+    // Only active campaigns can be paused
+    if (campaign.status !== 'active') {
+      return res.status(400).json({
+        res: false,
+        responseError: {
+          msg: 'Only active campaigns can be paused.',
+          errCode: '19188',
+          msgAPI: 'Campaign is not active.',
+        },
+      });
+    }
+
+    // Update campaign status to "paused"
+    campaign.status = 'paused';
+    await campaign.save();
+
+    return res.status(200).json({
+      res: true,
+      response: {
+        campaignId: campaign.campaign_id,
+        message: 'Campaign paused successfully.',
+      },
+    });
+  } catch (error) {
+    console.error('Error pausing campaign:', error);
+    return res.status(500).json({
+      res: false,
+      responseError: {
+        msg: 'Internal server error.',
+        errCode: '19189',
+        msgAPI: 'Failed to pause campaign.',
+      },
+    });
+  }
+};
+
+
+exports.resumeCampaign = async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const campaign = await Campaign.findOne({ campaign_id: campaignId });
+
+    if (!campaign) {
+      return res.status(404).json({
+        res: false,
+        responseError: {
+          msg: 'Campaign not found.',
+          errCode: '19187',
+          msgAPI: 'Campaign not found.',
+        },
+      });
+    }
+
+    if (campaign.status !== 'paused') {
+      return res.status(400).json({
+        res: false,
+        responseError: {
+          msg: 'Campaign can only be resumed if its status is paused.',
+          errCode: '19188',
+          msgAPI: 'Invalid campaign status.',
+        },
+      });
+    }
+
+    const currentDate = new Date();
+    if (currentDate < campaign.start_date || currentDate > campaign.end_date) {
+      return res.status(400).json({
+        res: false,
+        responseError: {
+          msg: 'Campaign can only be resumed within its start and end date.',
+          errCode: '19189',
+          msgAPI: 'Campaign date out of range.',
+        },
+      });
+    }
+
+    campaign.status = 'active';
+    await campaign.save();
+
+    return res.status(200).json({
+      res: true,
+      response: {
+        campaignId: campaign.campaign_id,
+        message: 'Campaign resumed successfully.',
+      },
+    });
+  } catch (error) {
+    console.error('Error resuming campaign:', error);
+    return res.status(500).json({
+      res: false,
+      responseError: {
+        msg: 'Internal server error.',
+        errCode: '19190',
+        msgAPI: 'Failed to resume campaign.',
       },
     });
   }

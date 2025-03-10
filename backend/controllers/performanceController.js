@@ -64,8 +64,6 @@ exports.getPerformanceMetrics = async (req, res) => {
   }
 };
 
-
-
 // Fetch referral summary
 exports.getReferralSummary = async (req, res) => {
   try {

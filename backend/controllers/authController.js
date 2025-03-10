@@ -1,4 +1,6 @@
-// controllers/authController.js
+/*******************************
+ * controllers/authController.js
+ ******************************/
 
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -7,9 +9,6 @@ const Admin = require('../models/Admin');
 const Token = require('../models/Token'); // Model to store refresh tokens securely
 const Otp = require('../models/OTP');     // Model to store OTPs
 const bcrypt = require('bcryptjs');
-/**
- * Helper Functions for Standardized Responses
- */
 
 /**
  * Success Response Formatter
@@ -51,7 +50,10 @@ const generateOtp = () => {
 
 
 /**
- * Login Function
+ * Login function - Authenticates admin user and generates OTP
+ * @param {Object} req - Express request object containing username/email and password
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with OTP details or error message
  */
 exports.login = async (req, res) => {
     try {
@@ -145,7 +147,12 @@ const generateRefreshToken = (payload) => {
 
 
 
-// REGISTER
+/**
+ * Register function - Creates new admin account
+ * @param {Object} req - Express request object containing username, email and password
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with created admin details or error message
+ */
 exports.register = async (req, res) => {
     try {
         const { username, password, email } = req.body;
@@ -249,7 +256,10 @@ exports.register = async (req, res) => {
 
 
 /**
- * Verify OTP
+ * Verify OTP function - Validates OTP and generates auth tokens
+ * @param {Object} req - Express request object containing username and OTP
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with auth tokens or error message
  */
 exports.verifyOtp = async (req, res) => {
     try {
@@ -325,7 +335,10 @@ exports.verifyOtp = async (req, res) => {
 };
 
 /**
- * Refresh Token
+ * Refresh Token function - Generates new access token from refresh token
+ * @param {Object} req - Express request object containing refresh token
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with new access token or error message
  */
 exports.refreshToken = async (req, res) => {
     try {
@@ -382,7 +395,10 @@ exports.refreshToken = async (req, res) => {
 
 
 /**
- * Logout
+ * Logout function - Invalidates refresh token
+ * @param {Object} req - Express request object containing refresh token
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with logout status
  */
 exports.logout = async (req, res) => {
     try {
@@ -424,7 +440,13 @@ exports.logout = async (req, res) => {
     }
 };
 
-// Middleware to authenticate access tokens
+/**
+ * Authentication Middleware - Validates JWT access tokens
+ * @param {Object} req - Express request object with authorization header
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
+ */
 exports.authenticateToken = (req, res, next) => {   
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -457,7 +479,12 @@ exports.authenticateToken = (req, res, next) => {
 }
 
 
-// Reset Password Endpoint
+/**
+ * Reset Password function - Updates admin password
+ * @param {Object} req - Express request object with username, email and new password
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with password reset status
+ */
 exports.resetPassword = async (req, res) => {
     try {
         const { username, email, newPassword } = req.body;
@@ -540,8 +567,12 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
-
-// Get all admins
+/**
+ * Get All Admins function - Retrieves list of all admin users
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} Response with array of admin users
+ */
 exports.getAllAdmins = async (req, res) => {
     try {
       const admins = await Admin.find({}, {
