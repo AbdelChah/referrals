@@ -19,6 +19,7 @@ services:
     environment:
       - PORT=4000
       - CLIENT_URL=http://localhost:3000
+      - DB_URI=mongodb://percona:27017/referral_db?replicaSet=rs0
     volumes:
       - ./backend:/app
       - /app/node_modules
