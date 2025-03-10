@@ -1,12 +1,11 @@
-
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
+  percona:  # Renamed the service to percona
+    image: percona/percona-server-mongodb:latest
+    container_name: percona  # Renamed the container to percona
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_data:/data/db  # Keeping the same volume name
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - referral_network
@@ -26,7 +25,7 @@ services:
     networks:
       - referral_network
     depends_on:
-      - mongodb
+      - percona  # Update the dependency to the new service name
 
   frontend:
     build:
@@ -59,7 +58,7 @@ services:
       - referral_network
 
 volumes:
-  mongodb_data:
+  mongodb_data:  # The volume name remains unchanged
 
 networks:
   referral_network:
