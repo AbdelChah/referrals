@@ -138,7 +138,7 @@ exports.login = async (req, res) => {
                 {
                     headers: {
                         "Content-Type": "application/json",
-                        "User-Agent": "CLICK2PAY_BOB_PROD/UniPush/1.0.0" // Matching the successful request
+                        "User-Agent": "REFERRALS/UniPush/1.0.0" // Matching the successful request
                     },
                     httpsAgent: agent // Only needed if the SSL cert issue is real
                 }
