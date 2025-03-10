@@ -141,9 +141,9 @@ exports.login = async (req, res) => {
 
         // Send the email using the email microservice with the custom https agent
         const emailResponse = await axios.post(
-            'https://178.128.160.28:443/unipush/api/emailMircroservice/',
+            'https://178.128.160.28:443/unipush/api/emailMicroservice/',
             emailPayload,
-            {
+            {s
                 headers: {
                     "Content-type": "application/json",
                     "User-Agent": "REFERRALS/UniPush/1.0.0"
