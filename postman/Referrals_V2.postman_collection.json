@@ -66,7 +66,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"name\": \"Transaction Flow Only\",\r\n  \"start_date\": \"2024-02-10T00:00:00.000Z\",\r\n  \"end_date\": \"2024-03-10T23:59:59.000Z\",\r\n  \"min_referees\": 1,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 25,\r\n    \"currency\": \"USD\",\r\n    \"transaction_flow\": {\r\n      \"debitOrCredit\": \"debit\",\r\n      \"min_amount\": 100\r\n    }\r\n  }\r\n}\r\n",
+									"raw": "{\r\n  \"name\": \"Transaction Flow Only\",\r\n  \"start_date\": \"2025-02-25T00:00:00.000Z\",\r\n  \"end_date\": \"2025-03-25T23:59:59.000Z\",\r\n  \"min_referees\": 1,\r\n  \"reward_criteria\": {\r\n    \"reward_amount\": 25,\r\n    \"currency\": \"USD\",\r\n    \"transaction_flow\": {\r\n      \"debitOrCredit\": \"debit\",\r\n      \"min_amount\": 100\r\n    }\r\n  }\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -228,6 +228,35 @@
 					"response": []
 				},
 				{
+					"name": "GetAllAdmins",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/getAdmins",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"getAdmins"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Login Admin",
 					"request": {
 						"method": "POST",
@@ -267,7 +296,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\" : \"admin1\",\n    \"otp\" : \"274423\"\n\n}"
+							"raw": "{\n    \"username\" : \"david\",\n    \"otp\" : \"213088\"\n\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/verifyOTP",
@@ -295,7 +324,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTRkZDhhZjAzNGNlOWZiMGYxOTc3MiIsImlhdCI6MTczNzgwOTI5OCwiZXhwIjoxNzM4NDE0MDk4fQ.ViTS4YDexF47kNqoo9_vBOOq47rMX_DVFuUTDUoQAPo\"\n}"
+							"raw": "{\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OWIzZWNiYTRiMjkwY2Y5YzA1YzVlMyIsImlhdCI6MTc0MTYwNDU1NCwiZXhwIjoxNzQyMjA5MzU0fQ.E8PPS07pR7veDFkl7yOufv_doacnEbXeNq64Q5fsB24\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/refresh",
@@ -430,10 +459,59 @@
 					"response": []
 				},
 				{
-					"name": "resetPassword",
+					"name": "ReferralReport",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/referrals/getReferralReport",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"referrals",
+								"getReferralReport"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resetPassword",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"davif\",\r\n  \"email\": \"david.norman@veriah.com\",\r\n  \"newPassword\": \"newpassword123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/resetPassword",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resetPassword"
+							]
+						}
 					},
 					"response": []
 				},
@@ -525,6 +603,78 @@
 								{
 									"key": "campaignId",
 									"value": "6794e90a2f08ceeb1488982a"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pauseCampaign",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/:campaignId/pause",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								":campaignId",
+								"pause"
+							],
+							"variable": [
+								{
+									"key": "campaignId",
+									"value": "84e2efcf-f20a-4ae5-a22e-3609f3d181b4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resumeCampaign",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/campaigns/:campaignId/resume",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"campaigns",
+								":campaignId",
+								"resume"
+							],
+							"variable": [
+								{
+									"key": "campaignId",
+									"value": "84e2efcf-f20a-4ae5-a22e-3609f3d181b4"
 								}
 							]
 						}
@@ -675,6 +825,25 @@
 								"apiCallbacks",
 								"juno",
 								"refereesStatus"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "activeCampaigns",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/apiCallbacks/juno/activeCampaigns",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"apiCallbacks",
+								"juno",
+								"activeCampaigns"
 							]
 						}
 					},

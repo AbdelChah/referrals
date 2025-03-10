@@ -9,6 +9,7 @@ const Admin = require('../models/Admin');
 const Token = require('../models/Token'); // Model to store refresh tokens securely
 const Otp = require('../models/OTP');     // Model to store OTPs
 const bcrypt = require('bcryptjs');
+const axios = require('axios');
 
 /**
  * Success Response Formatter
@@ -66,7 +67,6 @@ exports.login = async (req, res) => {
                     'Username or email and password are required.',
                     '19010',
                     'Missing required fields.'
-
                 )
             );
         }
@@ -100,24 +100,55 @@ exports.login = async (req, res) => {
             );
         }
 
+        // Invalidate any existing session token
         const existingToken = await Token.findOne({ adminId: admin._id });
         if (existingToken) {
-            await existingToken.deleteOne(); // Invalidate the old session
+            await existingToken.deleteOne();
         }
 
+        // Generate OTP and compute its expiration
         const otp = generateOtp();
         const otpExpirationMinutes = parseInt(process.env.OTP_EXPIRATION_MINUTES) || 10;
         const expiresAt = new Date(Date.now() + otpExpirationMinutes * 60 * 1000);
 
+        // Save OTP to the database
         await Otp.create({
             adminId: admin._id,
             otp,
             expiresAt,
         });
 
+        // Prepare the email payload with dynamic OTP details
+        const emailPayload = {
+            microservice: "click2pay",
+            applicationID: "9fe9395a-43d9-4dae-9745-99a85772f38b",
+            applicationSecret: "76d1489d-a9fb-4488-9649-821159739738",
+            message: {
+                from_email: "no.reply@bob-finance.com",
+                from_text: "\"BOB Finance\" <no.reply@bob-finance.com>",
+                to_email: admin.email, // Sending to the admin's email address
+                subject: "Your OTP for Login",
+                html: `<p>Your OTP is: <strong>${otp}</strong></p>
+                       <p>This OTP is valid for ${otpExpirationMinutes} minutes.</p>`
+            }
+        };
+
+        // Send the email using the email microservice
+        const emailResponse = await axios.post(
+            'https://172.31.5.35:443/unipush/api/emailMicroservice/',
+            emailPayload,
+            {
+                headers: {
+                    "Content-type": "application/json",
+                    "User-Agent": "REFERRALS/UniPush/1.0.0"
+                }
+            }
+        );
+
+        console.log("Email Response: ", emailResponse);
+
         return res.status(200).json(
-            formatSuccessResponse('OTP has been generated successfully.', {
-                otp,
+            formatSuccessResponse('OTP has been generated and emailed successfully.', {
                 otpExpirationMinutes,
             })
         );
