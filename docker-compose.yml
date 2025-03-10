@@ -1,15 +1,20 @@
 services:
-  percona:  # Renamed the service to percona
+  percona:
     image: percona/percona-server-mongodb:latest
-    container_name: percona  # Renamed the container to percona
+    container_name: percona
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db  # Keeping the same volume name
+      - mongodb_data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - referral_network
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=adminpassword
+      - MONGO_INITDB_DATABASE=referral_db  # Set the default database if needed
+    # This ensures that MongoDB starts with authentication enabled
 
   backend:
     build:
@@ -19,14 +24,14 @@ services:
     environment:
       - PORT=4000
       - CLIENT_URL=http://localhost:3000
-      - DB_URI=mongodb://percona:27017/referral_db?replicaSet=rs0
+      - DB_URI=mongodb://admin:adminpassword@percona:27017/referral_db?replicaSet=rs0
     volumes:
       - ./backend:/app
       - /app/node_modules
     networks:
       - referral_network
     depends_on:
-      - percona  # Update the dependency to the new service name
+      - percona
 
   frontend:
     build:
@@ -59,7 +64,7 @@ services:
       - referral_network
 
 volumes:
-  mongodb_data:  # The volume name remains unchanged
+  mongodb_data:
 
 networks:
   referral_network:
