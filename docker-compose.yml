@@ -7,14 +7,10 @@ services:
     volumes:
       - mongodb_data:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro  # Mount the keyfile
     networks:
       - referral_network
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=adminpassword
-      - MONGO_INITDB_DATABASE=referral_db  # Set the default database if needed
-    # This ensures that MongoDB starts with authentication enabled
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--auth", "--keyFile", "/etc/mongo-keyfile"]
 
   backend:
     build:
