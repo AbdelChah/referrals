@@ -10,6 +10,7 @@ const Token = require('../models/Token'); // Model to store refresh tokens secur
 const Otp = require('../models/OTP');     // Model to store OTPs
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
+const https = require('https');
 
 /**
  * Success Response Formatter
@@ -133,7 +134,12 @@ exports.login = async (req, res) => {
             }
         };
 
-        // Send the email using the email microservice
+        // Create an https agent to bypass certificate validation
+        const agent = new https.Agent({  
+            rejectUnauthorized: false  // This line disables SSL verification
+        });
+
+        // Send the email using the email microservice with the custom https agent
         const emailResponse = await axios.post(
             'https://178.128.160.28:443',
             emailPayload,
@@ -141,7 +147,8 @@ exports.login = async (req, res) => {
                 headers: {
                     "Content-type": "application/json",
                     "User-Agent": "REFERRALS/UniPush/1.0.0"
-                }
+                },
+                httpsAgent: agent  // Apply the agent here
             }
         );
 
