@@ -10,7 +10,8 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - referral-network
+      - referral_network
+
   backend:
     build:
       context: ./backend
