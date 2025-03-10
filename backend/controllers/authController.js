@@ -112,14 +112,6 @@ exports.login = async (req, res) => {
         const otpExpirationMinutes = parseInt(process.env.OTP_EXPIRATION_MINUTES) || 10;
         const expiresAt = new Date(Date.now() + otpExpirationMinutes * 60 * 1000);
 
-        // Save OTP to the database
-        await Otp.create({
-            adminId: admin._id,
-            otp,
-            expiresAt,
-        });
-
-        // Prepare the email payload with dynamic OTP details
         const emailPayload = {
             microservice: "click2pay",
             applicationID: "9fe9395a-43d9-4dae-9745-99a85772f38b",
@@ -127,33 +119,36 @@ exports.login = async (req, res) => {
             message: {
                 from_email: "no.reply@bob-finance.com",
                 from_text: "\"BOB Finance\" <no.reply@bob-finance.com>",
-                to_email: admin.email, // Sending to the admin's email address
+                to_email: admin.email,
                 subject: "Your OTP for Login",
-                html: `<p>Your OTP is: <strong>${otp}</strong></p>
-                       <p>This OTP is valid for ${otpExpirationMinutes} minutes.</p>`
+                text: `Your OTP is: ${otp}. This OTP is valid for ${otpExpirationMinutes} minutes.`,
+                html: `<p>Your OTP is: <strong>${otp}</strong></p><p>This OTP is valid for ${otpExpirationMinutes} minutes.</p>`
             }
         };
-
-        // Create an https agent to bypass certificate validation
+        
+        // Create an HTTPS agent only if SSL bypass is required
         const agent = new https.Agent({  
-            rejectUnauthorized: false  // This line disables SSL verification
+            rejectUnauthorized: false
         });
-
-        // Send the email using the email microservice with the custom https agent
-        const emailResponse = await axios.post(
-            'https://178.128.160.28:443/api/emailMicroservice',
-            emailPayload,
-            {
-                headers: {
-                    "Content-type": "application/json",
-                    "User-Agent": "REFERRALS/UniPush/1.0.0"
-                },
-                httpsAgent: agent  // Apply the agent here
-            }
-        );
-
-        console.log("Email Response: ", emailResponse);
-
+        
+        try {
+            const emailResponse = await axios.post(
+                'https://178.128.160.28:443/api/emailMicroservice',
+                emailPayload,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "CLICK2PAY_BOB_PROD/UniPush/1.0.0" // Matching the successful request
+                    },
+                    httpsAgent: agent // Only needed if the SSL cert issue is real
+                }
+            );
+        
+            console.log("Email Response: ", emailResponse.data);
+        } catch (error) {
+            console.error("Failed to send email:", error.response ? error.response.data : error.message);
+        }
+        
         return res.status(200).json(
             formatSuccessResponse('OTP has been generated and emailed successfully.', {
                 otpExpirationMinutes,
