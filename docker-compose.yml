@@ -6,15 +6,16 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=rootpassword
       - MONGO_INITDB_DATABASE=referral_db
-    command: ["mongod", "--replSet", "rs0"]
+    command: ["mongod", "--replSet", "rs0", "--auth", "--bind_ip_all", "--keyFile", "/etc/mongodb-keyfile"]
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      # Mount an initialization script to run replica set initiation.
       - ./init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh:ro
+      - ./mongodb-keyfile:/etc/mongodb-keyfile:ro
     networks:
       - referral_network
+
   backend:
     build:
       context: ./backend
