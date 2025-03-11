@@ -112,6 +112,14 @@ exports.login = async (req, res) => {
         const otpExpirationMinutes = parseInt(process.env.OTP_EXPIRATION_MINUTES) || 10;
         const expiresAt = new Date(Date.now() + otpExpirationMinutes * 60 * 1000);
 
+        // Save the OTP in the database
+        const otpDocument = new Otp({
+            adminId: admin._id,
+            otp,
+            expiresAt,
+        });
+        await otpDocument.save();
+
         const emailPayload = {
             microservice: "click2pay",
             applicationID: "9fe9395a-43d9-4dae-9745-99a85772f38b",
@@ -138,9 +146,9 @@ exports.login = async (req, res) => {
                 {
                     headers: {
                         "Content-Type": "application/json",
-                        "User-Agent": "REFERRALS/UniPush/1.0.0" // Matching the successful request
+                        "User-Agent": "REFERRALS/UniPush/1.0.0"
                     },
-                    httpsAgent: agent // Only needed if the SSL cert issue is real
+                    httpsAgent: agent
                 }
             );
         
