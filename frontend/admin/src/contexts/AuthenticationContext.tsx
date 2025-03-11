@@ -69,14 +69,8 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
     try {
       const response = await loginService({ username, password });
       if (response.res) {
-        const otp = response.response?.data?.otp;
-        const otpExpirationMinutes =
-          response.response?.data?.otpExpirationMinutes;
-
-        if (otp) {
-          navigator.clipboard.writeText(otp);
           toast.info(
-            `OTP generated: ${otp}. It has been copied to your clipboard. Expiry: ${otpExpirationMinutes} minutes.`,
+            `OTP sent to your email`,
             {
               position: "top-right",
               hideProgressBar: true,
@@ -88,11 +82,10 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
           );
           sessionStorage.setItem("username", username);
           navigate("/verify-otp");
-        }
       } else {
         const errorMsg =
           response.responseError?.msg || "Login failed: Invalid credentials.";
-        toast.error(errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -123,12 +116,13 @@ export const AuthenticationProvider: React.FC<AuthenticationProviderProps> = ({
         saveTokens(accessToken, refreshToken);
         setIsAuthenticated(true);
         sessionStorage.setItem("username", usernameFromSession);
+        toast.success("OTP verified successfully!");
         navigate("/dashboard");
       } else {
-        toast.error("OTP validation failed.");
+       throw new Error("OTP validation failed.");
       }
     } catch (error) {
-      toast.error("An error occurred during OTP validation.");
+      toast.error("OTP validation failed.");
     } finally {
       setLoading(false);
     }

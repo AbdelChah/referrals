@@ -13,7 +13,7 @@ import {
 } from "../../styles/table.styles";
 import { Link } from "react-router-dom";
 import { Campaign } from "../../Models/Campaign";
-import { fetchCampaigns, deleteCampaign } from "../../services/campaignService";
+import { fetchCampaigns, deleteCampaign, pauseCampaign, resumeCampaign } from "../../services/campaignService";
 import CampaignModal from "./CampaignDetailsModal";
 import {
   TablePagination,
@@ -39,6 +39,8 @@ import { getStatusColor } from "../../helpers/statusColorHelper";
 import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { SelectChangeEvent } from "@mui/material";
 
@@ -79,6 +81,7 @@ const CampaignList: React.FC = () => {
   const loadCampaigns = useCallback(async () => {
     try {
       const fetchedCampaigns = await fetchCampaigns();
+      console.log({fetchedCampaigns});
       setCampaigns(fetchedCampaigns);
     } catch (error) {
       console.error("Error loading campaigns:", error);
@@ -112,6 +115,27 @@ const CampaignList: React.FC = () => {
     }
   };
 
+  const handlePause = async (campaignId: string) => {
+    try {
+      await pauseCampaign(campaignId);
+      loadCampaigns();
+      toast.success("Campaign paused successfully ");
+    } catch (error) {
+      console.error("Error pausing campaign:", error);
+      toast.error("Failed to pause the campaign. Please try again.");
+    }
+  };
+
+  const handleResume = async (campaignId: string) => {
+    try {
+      await resumeCampaign(campaignId);
+      loadCampaigns();
+      toast.success("Campaign resumed successfully ");
+    } catch (error) {
+      console.error("Error pausing campaign:", error);
+      toast.error("Failed to pause the campaign. Please try again.");
+    }
+  };
   const handleSort = (key: keyof Campaign) => {
     let direction: "asc" | "desc" = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -420,6 +444,31 @@ const CampaignList: React.FC = () => {
                         <DeleteIcon fontSize="small" sx={{ color: "red" }} />
                       </ListItemIcon>
                       <ListItemText primary="Delete" />
+                    </MenuItem>
+                    <MenuItem
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handlePause(campaign.campaignId)
+                        handleMenuClose(campaign.id);
+                      }}
+                    >
+                      <ListItemIcon>
+                        <PauseIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary="Pause" />
+                    </MenuItem>
+                    <MenuItem
+                      onClick={(event) => {
+                        console.log("future implementation of pause campaign", campaign);
+                        event.stopPropagation();
+                        handleResume(campaign.campaignId)
+                        handleMenuClose(campaign.id);
+                      }}
+                    >
+                      <ListItemIcon>
+                        <PlayArrowIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary="Resume" />
                     </MenuItem>
                   </Menu>
                 </TableCell>

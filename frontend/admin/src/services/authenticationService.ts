@@ -1,3 +1,4 @@
+import { Admin } from "@/Models/Admins";
 import { apiCall } from "../helpers/apiCall";
 import {
   LoginRequest,
@@ -5,9 +6,10 @@ import {
   ResetPasswordRequest,
   AuthResponse,
   OtpRequest,
+  FecthAdminsResponse,
 } from "../Models/Authentication";
-import { Admin } from "../Models/Admins";
-import admins from "../Models/Mock/admins.json"; 
+import admins from "../Models/Mock/admins.json";
+import api from "./axiosInstance";
 
 const defaultAuthResponse: AuthResponse = {
   res: false,
@@ -17,7 +19,6 @@ const defaultAuthResponse: AuthResponse = {
     msgAPI: "Unable to process the request.",
   },
 };
-
 
 // Services
 export const loginService = async (data: LoginRequest): Promise<AuthResponse> =>
@@ -38,10 +39,10 @@ export const resetPasswordService = async (
 ): Promise<AuthResponse> =>
   apiCall("/api/auth/resetPassword", "POST", data, defaultAuthResponse);
 
-
-export const validateOtpService = async (otpRequest: OtpRequest): Promise<AuthResponse> =>
-apiCall("/api/auth/verifyOTP", "POST",otpRequest, defaultAuthResponse);
-
+export const validateOtpService = async (
+  otpRequest: OtpRequest
+): Promise<AuthResponse> =>
+  apiCall("/api/auth/verifyOTP", "POST", otpRequest, defaultAuthResponse);
 
 export const refreshTokenService = async (
   refreshToken: string
@@ -49,16 +50,18 @@ export const refreshTokenService = async (
   apiCall("/api/auth/refresh", "POST", { refreshToken }, defaultAuthResponse);
 
 
-  // Mock function to simulate fetching admins
-  export const fetchAdmins = async (): Promise<Admin[]> => {
-    // Here you can replace this with a call to your API once it's available
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(admins), 1000);
-    });
-  };
+export const fetchAdmins = async (): Promise<Admin[] | undefined> => {
+  try {
+    const response = await api.get<FecthAdminsResponse>("/api/auth/getAdmins");
+    console.log("response: ", response.data.response);
+    return response.data.response; // Return only the `referrals` array
+  } catch (error) {
+    console.error("Error fetching referrals:", error);
+    throw error;
+  }
+};
 
-
-// Mock function to simulate deleting an admin by id
+// Mock function to simulate deleting an admin by id tp be replaced.
 export const deleteAdmin = async (adminId: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     // Simulate a delay as if calling an API
@@ -75,4 +78,3 @@ export const deleteAdmin = async (adminId: string): Promise<void> => {
     }, 1000);
   });
 };
-  

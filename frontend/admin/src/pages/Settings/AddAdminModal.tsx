@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 interface AddAdminModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: FormikValues) => void;
 }
 
 const validationSchema = Yup.object({
@@ -25,7 +24,6 @@ const validationSchema = Yup.object({
 const AddAdminModal: React.FC<AddAdminModalProps> = ({
   open,
   onClose,
-  onSubmit,
 }) => {
   const [loading, setLoading] = useState(false); // State to manage loading status
   const [error, setError] = useState<string | undefined>(undefined);
@@ -46,9 +44,6 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
 
       // Notify success
       toast.success("Admin registered successfully!");
-
-      // Trigger the onSubmit function passed via props
-      onSubmit(values);
       onClose(); // Close the modal after successful registration
     } catch (error) {
       console.error("Error registering admin:", error);

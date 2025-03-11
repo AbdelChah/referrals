@@ -42,3 +42,22 @@ export const getCampaignsMeta = async (): Promise<CampaignsMeta[]> => {
     throw error;
   }
 };
+
+export const pauseCampaign = async (campaignId: string): Promise<void> => {
+  try{
+    return await api.post(`/api/campaigns/${campaignId}/pause`);
+  }catch(error){
+    console.error(`Error pausing campaign with ID ${campaignId}:`, error);
+    throw error;
+  }
+}
+
+
+export const resumeCampaign = async (campaignId: string): Promise<void> => {
+  try{
+    return await api.post(`/api/campaigns/${campaignId}/resume`);
+  }catch(error){
+    console.error(`Error resuming campaign with ID ${campaignId}:`, error);
+    throw error;
+  }
+}

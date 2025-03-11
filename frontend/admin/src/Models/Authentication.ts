@@ -1,4 +1,11 @@
+import { Admin } from "./Admins";
+
 // types.ts
+export interface ErrorResponse {
+  msg: string;
+  errCode: string;
+  msgAPI: string;
+}
 
 export interface LoginRequest {
   username: string;
@@ -16,12 +23,6 @@ export interface ResetPasswordRequest {
   newPassword: string;
   username: string;
 }
-
-export interface Admin {
-  id: string;
-  name: string;
-}
-
 export interface LoginResponse {
   res: boolean;
   response?: {
@@ -30,11 +31,7 @@ export interface LoginResponse {
       otp: string;
       otpExpirationMinutes: number;
     };
-    responseError?: {
-      msg: string;
-      errCode: string;
-      msgAPI: string;
-    };
+    responseError?: ErrorResponse;
   };
 }
 export interface AuthResponse {
@@ -43,11 +40,7 @@ export interface AuthResponse {
     msg: string;
     data?: Record<string, any>; // To handle varying response structures like OTP or tokens
   };
-  responseError?: {
-    msg: string;
-    errCode: string;
-    msgAPI: string;
-  };
+  responseError?: ErrorResponse;
 }
 
 export interface OtpRequest {
@@ -55,3 +48,8 @@ export interface OtpRequest {
   otp: string;
 }
 
+export interface FecthAdminsResponse {
+  res: boolean;
+  response?: Admin[];
+  responseError?: ErrorResponse;
+}

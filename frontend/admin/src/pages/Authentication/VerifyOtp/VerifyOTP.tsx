@@ -7,7 +7,6 @@ import {
   FormError,
 } from "../../../components/formWrapper.styles";
 import { useAuthContext } from "../../../hooks/useAuthContext";
-import { toast } from "react-toastify";
 import { Box } from "@mui/material";
 
 const VerifyOtp: React.FC = () => {
@@ -62,10 +61,8 @@ const VerifyOtp: React.FC = () => {
     setLoading(true);
     try {
       await validateOtp(enteredOTP);
-      toast.success("OTP verified successfully!");
     } catch (err) {
       console.error(err);
-      setError("Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }

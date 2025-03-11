@@ -1,7 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {  getRefreshToken, clearTokens, saveTokens } from '../helpers/tokenHelper';
-import api from '../services/axiosInstance';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getRefreshToken,
+  clearTokens,
+  saveTokens,
+} from "../helpers/tokenHelper";
+import api from "../services/axiosInstance";
 
 const AuthenticationInterceptor = () => {
   const navigate = useNavigate();
@@ -10,15 +14,23 @@ const AuthenticationInterceptor = () => {
     const responseInterceptor = api.interceptors.response.use(
       (response) => response, // Handle successful responses
       async (error) => {
+        const originalRequest = error.config;
+        // Exclude OTP verification errors from logging out
+        if (originalRequest.url.includes("/auth/verifyOTP")) {
+          return Promise.reject(error);
+        }
         if (error.response?.status === 401 || error.response?.status === 403) {
           const refreshToken = getRefreshToken();
           if (refreshToken) {
             try {
               // Call refresh endpoint to get new tokens
-              const response = await api.post('/auth/refresh', { refreshToken });
-              const { accessToken, refreshToken: newRefreshToken } = response.data;
+              const response = await api.post("/auth/refresh", {
+                refreshToken,
+              });
+              const { accessToken, refreshToken: newRefreshToken } =
+                response.data;
               saveTokens(accessToken, newRefreshToken); // Save the new tokens
-              error.config.headers['Authorization'] = `Bearer ${accessToken}`;
+              error.config.headers["Authorization"] = `Bearer ${accessToken}`;
               return api(error.config); // Retry the failed request
             } catch (refreshError) {
               clearTokens(); // If refresh fails, clear tokens and redirect

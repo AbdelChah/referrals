@@ -9,14 +9,13 @@ import {
   SortIconContainer,
   TableHeaderContainer,
 } from "../../styles/table.styles";
-import { Admin } from "../../Models/Admins"; // Assuming you have an Admin model
+import { Admin } from "../../Models/Admins";
 import { fetchAdmins, deleteAdmin } from "../../services/authenticationService";
-import AdminModal from "./AddAdminModal"; // Assuming this is your modal component
+import AdminModal from "./AddAdminModal";
 import { TablePagination, Tooltip, TextField, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material"; // For sorting icons
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import LoadingView from "../../components/LoadingView";
-import { FormikValues } from "formik";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -54,8 +53,11 @@ const AdminSettings: React.FC = () => {
 
   const loadAdmins = useCallback(async () => {
     try {
-      const fetchedAdmins = await fetchAdmins(); // Fetch admins
-      setAdmins(fetchedAdmins);
+      const admins = await fetchAdmins();
+      console.log({ admins });
+      if (admins && admins.length > 0) {
+        setAdmins(admins);
+      }
     } catch (error) {
       console.error("Error loading admins:", error);
     } finally {
@@ -191,7 +193,7 @@ const AdminSettings: React.FC = () => {
 
           <tbody>
             {paginatedAdmins.map((admin) => (
-              <TableRow key={admin.id}>
+              <TableRow key={admin._id}>
                 <TableCell>{admin.username}</TableCell>
                 <TableCell>{admin.email}</TableCell>
                 <TableCell>
@@ -209,7 +211,7 @@ const AdminSettings: React.FC = () => {
                     <MenuItem
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(selectedAdmin!.id); // Delete action
+                        handleDelete(selectedAdmin!._id); // Delete action
                         handleMenuClose(e);
                       }}
                     >
@@ -245,9 +247,6 @@ const AdminSettings: React.FC = () => {
         <AdminModal
           open={isModalOpen}
           onClose={handleCloseModal}
-          onSubmit={function (values: FormikValues): void {
-            throw new Error("Function not implemented.");
-          }}
         />
       )}
     </>

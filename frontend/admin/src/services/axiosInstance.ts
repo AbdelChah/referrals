@@ -61,12 +61,22 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const excludedRoutes = [
+      "/api/auth/login",
+      "/api/auth/register",
+      "/api/auth/verifyOTP",
+      "/api/auth/logout",
+    ];
 
     // ✅ Detect Token Expiration Properly
     const isAuthError =
       error.response &&
       (error.response.status === 401 || error.response.status === 403);
 
+
+    if (isAuthError && excludedRoutes.includes(originalRequest.url)) {
+      return Promise.reject(error);
+    }
     if (isAuthError && !originalRequest._retry) {
       console.warn("⚠️ Access token expired. Trying to refresh...");
 

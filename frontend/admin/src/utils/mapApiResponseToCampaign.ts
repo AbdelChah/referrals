@@ -51,6 +51,7 @@ export const mapApiResponseToCampaign = (apiResponse: any): Campaign => {
   // Return the full mapped Campaign object
   return {
     id: apiResponse._id,
+    campaignId: apiResponse.campaign_id,
     campaignName: apiResponse.name,
     startDate: new Date(apiResponse.start_date).toISOString(),
     endDate: new Date(apiResponse.end_date).toISOString(),
