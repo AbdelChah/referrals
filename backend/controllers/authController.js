@@ -174,7 +174,6 @@ exports.login = async (req, res) => {
     }
 };
 
-
 // Generate tokens
 const generateAccessToken = (payload) => {
     return jwt.sign(payload, process.env.ACCESS_SECRET, { expiresIn: '15m' });
@@ -183,9 +182,6 @@ const generateAccessToken = (payload) => {
 const generateRefreshToken = (payload) => {
     return jwt.sign(payload, process.env.REFRESH_SECRET, { expiresIn: '7d' });
 };
-
-
-
 
 
 /**
@@ -293,7 +289,6 @@ exports.register = async (req, res) => {
         );
     }
 };
-
 
 
 /**
