@@ -195,7 +195,7 @@ exports.generateReferralCode = async (req, res) => {
       res: true,
       response: {
         referralId: referralCode,
-        referralText: "blablabla" // Modify as needed
+        referralText: "Use This Code to Earn Rewards!" // Modify as needed
       }
     });
   } catch (error) {
