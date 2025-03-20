@@ -277,9 +277,14 @@ exports.validateReferralCode = async (req, res) => {
     }
 
     // Referral code is active
-    return res
-      .status(200)
-      .json(formatSuccessResponse('Referral code is active', { isReferralIdValid: true }));
+    return res.status(200).json({
+      res: true,
+      response: {
+        msg: "Referral code is active",
+        isReferralIdValid: true
+      }
+    });
+    
   } catch (error) {
     console.error('Error validating referral code:', error.message);
     return res
