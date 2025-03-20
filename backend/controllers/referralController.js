@@ -1,3 +1,7 @@
+/*******************************
+ * controllers/referralController.js
+ ******************************/
+
 const axios = require('axios');
 const Referral = require('../models/Referrals');
 const Campaign = require('../models/Campaign');
@@ -94,14 +98,27 @@ function checkRefereeEligibility(campaign, refereeData) {
     return true;
   }
 
-// Generate a unique referral code
 const generateReferralCode = (referrer, campaignName) => {
   const hash = crypto.createHash('sha256');
   hash.update(referrer + campaignName); // Combine referrer and campaignName
   return hash.digest('hex').slice(0, 8).toUpperCase(); // Take first 8 characters and uppercase
 };
 
-// Generate referral code
+
+
+
+/**
+ * Generate a unique referral code for a referrer in an active campaign.
+ * @async
+ * @function generateReferralCode
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.application - Application identifier
+ * @param {string} req.body.referrer - Referrer's phone number
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with generated referral code
+ * @throws {Error} When validation fails or system error occurs
+ */
 exports.generateReferralCode = async (req, res) => {
   try {
     const { application, referrer } = req.body;
@@ -173,9 +190,14 @@ exports.generateReferralCode = async (req, res) => {
 
     await newReferral.save();
 
-    return res
-      .status(200)
-      .json(formatSuccessResponse('Referral code generated successfully.', { referralId: referralCode }));
+    // New response structure
+    return res.status(200).json({
+      res: true,
+      response: {
+        referralId: referralCode,
+        referralText: "blablabla" // Modify as needed
+      }
+    });
   } catch (error) {
     console.error('Error generating referral code:', error.message);
     return res
@@ -188,7 +210,20 @@ exports.generateReferralCode = async (req, res) => {
   }
 };
 
-// Validate referral code
+
+/**
+ * Validate an existing referral code.
+ * @async
+ * @function validateReferralCode
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.application - Application identifier
+ * @param {string} req.body.referrer - Referrer's phone number
+ * @param {string} req.body.referralId - Referral code to validate
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object indicating if referral code is valid
+ * @throws {Error} When validation fails or system error occurs
+ */
 exports.validateReferralCode = async (req, res) => {
   try {
     const { application, referrer, referralId } = req.body;
@@ -257,7 +292,24 @@ exports.validateReferralCode = async (req, res) => {
   }
 };
 
-//Import Actions 
+/**
+ * Process referee actions and update their status in the referral program.
+ * @async
+ * @function refereeAction
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.application - Application identifier
+ * @param {string} req.body.referee - Referee's phone number
+ * @param {string} req.body.referralId - Referral code
+ * @param {string} req.body.action - Action type ('onBoarding' or 'transaction')
+ * @param {string} [req.body.transaction] - Transaction type (e.g., 'P2P', 'CASH_IN')
+ * @param {string} [req.body.debitOrCredit] - Transaction direction ('debit' or 'credit')
+ * @param {number} [req.body.amount] - Transaction amount
+ * @param {string} [req.body.currency] - Transaction currency
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with updated referee status
+ * @throws {Error} When processing fails or system error occurs
+ */
 exports.refereeAction = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -473,6 +525,21 @@ exports.refereeAction = async (req, res) => {
     }
   };
 
+
+  
+/**
+ * Get status of all referees for a specific referral.
+ * @async
+ * @function getRefereesStatus
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.application - Application identifier
+ * @param {string} req.body.referrer - Referrer's phone number
+ * @param {string} req.body.referralId - Referral code
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with referees' status array
+ * @throws {Error} When fetching fails or system error occurs
+ */
 exports.getRefereesStatus = async (req, res) => {
     try {
       const { application, referrer, referralId } = req.body;
@@ -548,6 +615,18 @@ exports.getRefereesStatus = async (req, res) => {
     }
   };
 
+
+
+/**
+ * Get all referrals with their associated campaign details.
+ * @async
+ * @function getReferrals
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with detailed referrals data
+ * @throws {Error} When fetching fails or system error occurs
+ */
+
 exports.getReferrals = async (req, res) => {
     try {
       // 1) Fetch all referrals, populating the 'campaign_id' reference
@@ -617,6 +696,16 @@ exports.getReferrals = async (req, res) => {
   };
   
 
+  
+/**
+ * Generate a comprehensive report of all referral campaigns.
+ * @async
+ * @function getReferralReport
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with detailed campaign statistics and reports
+ * @throws {Error} When report generation fails or system error occurs
+ */
 exports.getReferralReport = async (req, res) => {
     try {
       // Fetch all referrals and populate the related campaigns
@@ -710,7 +799,16 @@ exports.getReferralReport = async (req, res) => {
   };
   
 
-// Get active campaigns for specific Application
+
+/**
+ * Get all currently active campaigns.
+ * @async
+ * @function getActiveCampaigns
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Response object with list of active campaigns
+ * @throws {Error} When fetching fails or system error occurs
+ */
 exports.getActiveCampaigns = async (req, res) => {
   try {
     const currentDate = new Date();
